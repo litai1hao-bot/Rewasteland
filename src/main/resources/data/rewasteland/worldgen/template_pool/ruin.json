@@ -1,0 +1,42 @@
+{
+  "name": "rewasteland:ruin",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:ruin/ruin_1"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:ruin/ruin_2"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:ruin/ruin_3"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:ruin/ruin_4"
+      },
+      "weight": 1
+    }
+  ]
+}

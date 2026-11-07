@@ -1,0 +1,58 @@
+{
+  "loot_table": "rewasteland:chests/survivor_camp_tools",
+  "pools": [
+    {
+      "rolls": {
+        "min": 1,
+        "max": 3
+      },
+      "entries": [
+        {
+          "item": "minecraft:iron_pickaxe",
+          "weight": 2
+        },
+        {
+          "item": "minecraft:iron_axe",
+          "weight": 2
+        },
+        {
+          "item": "minecraft:iron_nugget",
+          "weight": 4,
+          "count": {
+            "min": 1,
+            "max": 3
+          }
+        },
+        {
+          "item": "minecraft:iron_hoe",
+          "weight": 2,
+          "name": {
+            "translate": "rewasteland.crowbar"
+          },
+          "custom_model_data": 1,
+          "components": {
+            "minecraft:attribute_modifiers": {
+              "modifiers": [
+                {
+                  "type": "minecraft:generic.attack_damage",
+                  "id": "minecraft:empty",
+                  "amount": 9,
+                  "operation": "add_value",
+                  "slot": "mainhand"
+                },
+                {
+                  "type": "minecraft:generic.attack_speed",
+                  "id": "minecraft:empty",
+                  "amount": -3,
+                  "operation": "add_value",
+                  "slot": "mainhand"
+                }
+              ],
+              "show_in_tooltip": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

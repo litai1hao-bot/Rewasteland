@@ -1,0 +1,51 @@
+{
+  "name": "rewasteland:survivor_camp",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:survivor_camp/survivor_camp_1"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:survivor_camp/survivor_camp_2"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:survivor_camp/survivor_camp_3"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:survivor_camp/survivor_camp_4"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "projection": "rigid",
+        "processors": "minecraft:empty",
+        "location": "rewasteland:survivor_camp/survivor_camp_5"
+      },
+      "weight": 1
+    }
+  ]
+}
