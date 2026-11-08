@@ -10,10 +10,10 @@
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
-| 世界生成 | ✅ | 自定义 overworld 气候表（18 群系）、地表换土、全树枯枝、13 个原版群系废土化 |
+| 世界生成 | ✅ | 自定义 overworld 气候表（18 群系）、全局压平地形（无高山）、沙漠缩减、地表换土、全树枯枝 |
 | 结构 | ✅ | 荒屋 ×4、幸存者营地 ×5，按群系标签生成 |
 | 结构战利品 | ✅ | 外置到 `config/rewasteland/structure_looting/`，可逐表改 JSON |
-| 酸雨中毒 | 🚧 | 计划中 |
+| 酸雨中毒 | ✅ | 水中 / 露天降雨累积暴露值，3 级无限中毒；参数在 `config/rewasteland/acid_rain.json` |
 | 变异（吃食物触发） | 🚧 | 计划中 |
 | 怪物变种与装备 | 🚧 | 计划中 |
 | 自定义天气机 | 🚧 | 计划中 |
@@ -55,6 +55,17 @@ config/rewasteland/structure_looting/
 
 营地的大箱子仍使用原版村庄战利品表；如果想一起接管，新建一个
 `"loot_table": "minecraft:chests/village/village_armorer"` 的 JSON 即可。
+
+## 酸雨 / 水中毒
+
+首次启动会生成 `config/rewasteland/acid_rain.json`（同目录带 `README-acid-rain.txt`）：
+
+- 在水中（脚或头所在方块）或露天降雨 / 雷雨时，每 tick 累积 1 点暴露值；
+  干燥时每 tick 减少 1 点，上限 1200。
+- 200 / 600 / 1000 点分别进入中毒 0 / I / II（无限时长），第三级额外冒绿色粒子。
+- 默认 10 秒 / 30 秒 / 50 秒连续暴露进入三级；创造模式默认不受影响
+  （`affect_creative_players` 可开）。
+- 调试：op 可用 `/rwacid <ticks> <exposed>` 强制暴露、`/rwacid auto <ticks>` 按环境判定，`/rwacid reset` 清空。
 
 ## 目录约定
 

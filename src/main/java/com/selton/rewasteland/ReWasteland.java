@@ -89,6 +89,13 @@ public class ReWasteland {
         StructureLootConfig.ensureDefaults();
         NeoForge.EVENT_BUS.addListener(StructureLootConfig::onLootTableLoad);
 
+        // Acid rain / toxic water: config-driven exposure meter with infinite poison tiers.
+        AcidRain.ensureDefaults();
+        NeoForge.EVENT_BUS.addListener(AcidRain::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(AcidRain::onPlayerClone);
+        NeoForge.EVENT_BUS.addListener(AcidRain::onServerStarted);
+        NeoForge.EVENT_BUS.addListener(AcidRain::registerCommands);
+
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
