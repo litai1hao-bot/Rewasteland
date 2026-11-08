@@ -43,19 +43,22 @@ public class ReWastelandClient {
     }
 
     /**
-     * Visuals of acid water: reuse the vanilla water sprites with an acid-green tint, green fog and
-     * a green underwater overlay. No mixin needed - the fluid renderer reads all of this from the
-     * client extension registered for our fluid type.
+     * Visuals of acid water: custom acid-green water sprites (still/flow/overlay already baked
+     * green), green fog and a green underwater overlay. The tint is white so the baked green is
+     * not tinted twice.
      */
     @SubscribeEvent
     static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
         event.registerFluidType(new IClientFluidTypeExtensions() {
-            private static final ResourceLocation STILL = ResourceLocation.withDefaultNamespace("block/water_still");
-            private static final ResourceLocation FLOW = ResourceLocation.withDefaultNamespace("block/water_flow");
-            private static final ResourceLocation OVERLAY = ResourceLocation.withDefaultNamespace("block/water_overlay");
+            private static final ResourceLocation STILL =
+                    ResourceLocation.fromNamespaceAndPath(ReWasteland.MODID, "block/acid_water_still");
+            private static final ResourceLocation FLOW =
+                    ResourceLocation.fromNamespaceAndPath(ReWasteland.MODID, "block/acid_water_flow");
+            private static final ResourceLocation OVERLAY =
+                    ResourceLocation.fromNamespaceAndPath(ReWasteland.MODID, "block/acid_water_overlay");
             private static final ResourceLocation UNDERWATER =
                     ResourceLocation.fromNamespaceAndPath(ReWasteland.MODID, "textures/misc/acid_underwater.png");
-            private static final int ACID_TINT = 0xFF8FAF32;
+            private static final int ACID_TINT = 0xFFFFFFFF;
 
             @Override
             public ResourceLocation getStillTexture() {

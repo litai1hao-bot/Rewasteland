@@ -46,8 +46,9 @@ import org.slf4j.Logger;
  * </ul>
  * Plain water is safe unless {@code plain_water_toxic} is turned on. Exposure rises by
  * {@code exposure_gain_per_tick} while exposed and falls by {@code exposure_loss_per_tick} while
- * dry. Tier thresholds then apply an infinite poison effect: tier 1 = poison, tier 2 = poison I,
- * tier 3 = poison II + green particles.
+ * dry. Tier thresholds then refresh a 5 s poison effect once per second: tier 1 = poison,
+ * tier 2 = poison I, tier 3 = poison II + green particles, and at max exposure a 5 s wither
+ * is refreshed as well.
  *
  * <p>All tunables live in {@code config/rewasteland/acid_rain.json}; the file is re-read on every
  * server start and defaults are written on first launch.
@@ -58,7 +59,11 @@ public final class AcidRain {
 
     private static final String TAG_EXPOSURE = "rw_acid_exposure";
     private static final String TAG_LEVEL = "rw_acid_level";
-    private static final String TAG_POISON = "rw_acid_poison";
+    private static final String TAG_EFFECT_TIMER = "rw_acid_effect_timer";
+
+    /** Poison/wither are granted once per second and last 5 seconds. */
+    private static final int EFFECT_REFRESH_TICKS = 20;
+    private static final int EFFECT_DURATION_TICKS = 100;
 
     private static final String CONFIG_NAME = "acid_rain.json";
 
@@ -101,13 +106,15 @@ public final class AcidRain {
             Plain minecraft:water is safe unless "plain_water_toxic" is true
             (the legacy "water_is_acidic" key is still read as acid_water_toxic).
 
-            Tiers (infinite poison while exposed):
+            Tiers (5 s poison refreshed once per second while exposed):
               tier1_threshold .. tier2-1   poison 0      (default 200..599)
               tier2_threshold .. tier3-1   poison I      (default 600..999)
               tier3_threshold and above    poison II + green particles (default 1000+)
+              max_exposure and above       also wither 0 (default 1200+)
 
             With the defaults (gain 1 / loss 1 per tick) that is 10 s / 30 s / 50 s of
-            continuous exposure. Riding a vehicle protects from water, not from rain.
+            continuous exposure. Effects linger up to 5 s after you leave the acid.
+            Riding a vehicle protects from water, not from rain.
             Set "affect_creative_players" to true if you want to test in creative.
             """;
 
@@ -205,7 +212,6 @@ public final class AcidRain {
         CompoundTag to = fresh.getPersistentData();
         to.putInt(TAG_EXPOSURE, from.getInt(TAG_EXPOSURE));
         to.putInt(TAG_LEVEL, from.getInt(TAG_LEVEL));
-        to.putBoolean(TAG_POISON, false);
     }
 
     public static void onServerStarted(ServerStartedEvent event) {
@@ -234,7 +240,15 @@ public final class AcidRain {
         int oldLevel = data.getInt(TAG_LEVEL);
         data.putInt(TAG_EXPOSURE, next.exposure());
         data.putInt(TAG_LEVEL, next.level());
-        apply(level, player, data, oldLevel, next.level());
+
+        // Grant/refresh the timed effects once per second.
+        int effectTimer = data.getInt(TAG_EFFECT_TIMER) + 1;
+        boolean refresh = effectTimer >= EFFECT_REFRESH_TICKS;
+        if (refresh) {
+            effectTimer = 0;
+        }
+        data.putInt(TAG_EFFECT_TIMER, effectTimer);
+        apply(level, player, oldLevel, next.level(), next.exposure(), refresh);
     }
 
     private static boolean isExposed(ServerLevel level, ServerPlayer player) {
@@ -261,38 +275,47 @@ public final class AcidRain {
         return level.getFluidState(pos).is(tag) || level.getFluidState(pos.above()).is(tag);
     }
 
-    private static void apply(ServerLevel level, ServerPlayer player, CompoundTag data, int oldLevel, int newLevel) {
-        if (newLevel <= 0) {
-            if (data.getBoolean(TAG_POISON)) {
+    /**
+     * Applies or refreshes the timed effects. Called once per second; the effects last
+     * {@link #EFFECT_DURATION_TICKS} ticks so they stay active while exposed and fade out within
+     * five seconds after the player leaves.
+     */
+    private static void apply(ServerLevel level, ServerPlayer player, int oldLevel, int newLevel,
+                              int exposure, boolean refresh) {
+        // Older builds handed out infinite poison; replace it with the timed version.
+        if (newLevel > 0) {
+            MobEffectInstance poison = player.getEffect(MobEffects.POISON);
+            if (poison != null && poison.getDuration() == MobEffectInstance.INFINITE_DURATION) {
                 player.removeEffect(MobEffects.POISON);
-                data.putBoolean(TAG_POISON, false);
-                if (oldLevel > 0) {
-                    play(level, player, false);
-                }
             }
-            return;
+            MobEffectInstance wither = player.getEffect(MobEffects.WITHER);
+            if (wither != null && wither.getDuration() == MobEffectInstance.INFINITE_DURATION) {
+                player.removeEffect(MobEffects.WITHER);
+            }
         }
-
-        int amplifier = newLevel - 1;
-        if (newLevel != oldLevel) {
-            // addEffect() never downgrades an existing stronger effect, so clear before re-applying.
-            player.removeEffect(MobEffects.POISON);
-        }
-        MobEffectInstance current = player.getEffect(MobEffects.POISON);
-        boolean needsEffect = current == null
-                || current.getDuration() != MobEffectInstance.INFINITE_DURATION
-                || current.getAmplifier() != amplifier;
-        if (needsEffect) {
-            player.addEffect(new MobEffectInstance(
-                    MobEffects.POISON, MobEffectInstance.INFINITE_DURATION, amplifier, false, true, true));
-        }
-        data.putBoolean(TAG_POISON, true);
 
         if (newLevel > oldLevel) {
             play(level, player, true);
         } else if (newLevel < oldLevel) {
             play(level, player, false);
         }
+
+        if (refresh && newLevel > 0) {
+            int amplifier = newLevel - 1;
+            MobEffectInstance current = player.getEffect(MobEffects.POISON);
+            if (current != null && current.getAmplifier() > amplifier) {
+                // addEffect() never downgrades; drop the stronger effect so the tier change lands now.
+                player.removeEffect(MobEffects.POISON);
+            }
+            player.addEffect(new MobEffectInstance(
+                    MobEffects.POISON, EFFECT_DURATION_TICKS, amplifier, false, true, true));
+
+            if (exposure >= settings.maxExposure()) {
+                player.addEffect(new MobEffectInstance(
+                        MobEffects.WITHER, EFFECT_DURATION_TICKS, 0, false, true, true));
+            }
+        }
+
         if (newLevel >= 3) {
             level.sendParticles(
                     new DustColorTransitionOptions(
@@ -325,8 +348,9 @@ public final class AcidRain {
                     ServerPlayer fake = FakePlayerFactory.getMinecraft(level);
                     fake.getPersistentData().remove(TAG_EXPOSURE);
                     fake.getPersistentData().remove(TAG_LEVEL);
-                    fake.getPersistentData().remove(TAG_POISON);
+                    fake.getPersistentData().remove(TAG_EFFECT_TIMER);
                     fake.removeEffect(MobEffects.POISON);
+                    fake.removeEffect(MobEffects.WITHER);
                     ctx.getSource().sendSuccess(() -> Component.literal("rwacid: state reset"), false);
                     return 1;
                 }))
@@ -356,11 +380,16 @@ public final class AcidRain {
         String effectText = effect == null
                 ? "none"
                 : "poison amp=" + effect.getAmplifier() + " dur=" + effect.getDuration();
+        MobEffectInstance wither = fake.getEffect(MobEffects.WITHER);
+        String witherText = wither == null
+                ? "none"
+                : "wither amp=" + wither.getAmplifier() + " dur=" + wither.getDuration();
         String msg = "rwacid: ticks=" + ticks
                 + " exposed=" + wasExposed
                 + " exposure=" + data.getInt(TAG_EXPOSURE)
                 + " level=" + data.getInt(TAG_LEVEL)
-                + " effect=" + effectText;
+                + " effect=" + effectText
+                + " wither=" + witherText;
         source.sendSuccess(() -> Component.literal(msg), false);
         return 1;
     }

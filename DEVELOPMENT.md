@@ -24,8 +24,8 @@ git status
   1. 世界生成：691 条 multi_noise、13 个原版群系改皮、2 个自定义群系、30 个枯树 feature、沙漠缩减、全局压平地形（无高山）。
   2. 结构：荒屋 ×4 + 幸存者营地 ×5。
   3. 结构战利品：外置到 `config/rewasteland/structure_looting/`，可逐表改 JSON。
-  4. 酸雨 / 水中毒：暴露值 + 3 级无限中毒，参数外置到 `config/rewasteland/acid_rain.json`。
-  5. 酸水方块：自然生成的水全部换成 `rewasteland:acid_water`，水的毒性只作用于酸水（普通水安全）；独立 FluidType + 流体方块 + 桶，客户端绿 tint/雾/水下遮罩。
+  4. 酸雨 / 水中毒：暴露值 + 3 级中毒（每秒刷新 5 秒，1200 上限额外凋零），参数外置到 `config/rewasteland/acid_rain.json`。
+  5. 酸水方块：自然生成的水全部换成 `rewasteland:acid_water`，水的毒性只作用于酸水（普通水安全）；独立 FluidType + 流体方块 + 桶，客户端酸绿贴图/雾/水下遮罩。
   6. GitHub 开源：MIT、CI、README。
 - 还没做：吃食物变异、怪物变种与装备、自定义天气机、食物/物品改皮、撬棍贴图/模型。
 
@@ -57,7 +57,7 @@ git status
 | 文件 | 职责 |
 |---|---|
 | `ReWasteland.java` | `@Mod` 主类；注册 DeferredRegister、事件监听、配置 |
-| `ReWastelandClient.java` | 客户端：酸水渲染（绿 tint/水下雾/遮罩）、流体渲染层 |
+| `ReWastelandClient.java` | 客户端：酸水渲染（酸绿贴图/水下雾/水下遮罩）、流体渲染层 |
 | `Config.java` | MDK 示例的 ModConfigSpec（`logDirtBlock` 等），目前基本未使用 |
 | `StructureLootConfig.java` | 读 `config/rewasteland/structure_looting/*.json`，在 `LootTableLoadEvent` 里替换战利品表 |
 | `AcidRain.java` | 酸雨事件监听、配置读写、效果/音效/粒子、`/rwacid` 调试命令 |
@@ -149,10 +149,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 
 ### 5.5 自然水 → 酸水（1.1.0）
 
-用户要求：所有自然水都换成酸水，普通水安全，净水保留；外观先复用原版水贴图 + 酸绿 tint。
+用户要求：所有自然水都换成酸水，普通水安全，净水保留；外观最初是复用原版水贴图 + 酸绿 tint，最终改成直接使用生成的酸绿贴图。
 
 - **流体**：`rewasteland:acid_water`（source + flowing + LiquidBlock + 桶），独立 `FluidType`（继承 `WaterFluid` 复用流速/无限水/桶音效）。**没有加进 `#minecraft:water` 标签**：避免玻璃瓶从酸水装出净水、海绵/甘蔗/耕地/钓鱼把酸水当水；代价是水下 FOV/环境音/游泳姿态缺失（酸水致死，影响小）。
-- **客户端**：`IClientFluidTypeExtensions` 复用原版 `water_still`/`water_flow` 贴图 + 酸绿 tint、绿色雾、绿色水下遮罩；`ItemBlockRenderTypes.setRenderLayer(fluid, RenderType.translucent())` 必须设，否则 chunk 渲染层默认是 solid。
+- **客户端**：`IClientFluidTypeExtensions` 使用自定义 `acid_water_still`/`acid_water_flow`/`acid_water_overlay` 酸绿贴图（绿色已烘焙，tint 设为白色）、绿色雾、绿色水下遮罩；`ItemBlockRenderTypes.setRenderLayer(fluid, RenderType.translucent())` 必须设，否则 chunk 渲染层默认是 solid。
 - **世界生成**：`noise_settings.default_fluid` → 酸水（海洋/河流/湖泊/洞穴含水层全换）；`spring_water` → 酸水；lush 洞穴 `clay_pool_with_dripleaves` 改成无水 patch；`dripstone_cluster` 设 `wetness: 0.0`；`rewasteland:desert` 移除 `desert_well`。
 - **已知遗留**：海底神殿/海底废墟/要塞是 Java 结构代码里硬编码放 `minecraft:water`，数据包改不了；目前保留（可当净水点），要处理得加 Mixin/结构覆盖。客户端观感 2026-11-08 尚未目视验证。
 - **净水**：自然水全酸后，水桶只能从雨天炼药锅装净水（滴水石需要 `#minecraft:water` 上方，不会在酸水上滴）。
@@ -162,7 +162,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 
 - 实现：`AcidRain.java`（`PlayerTickEvent.Post`，仅服务端）、`AcidRainLogic.java`（纯逻辑）。
 - 判定：脚或头所在方块是**酸水**（`#rewasteland:acid_water`，骑乘时不判）；或主世界露天 + 下雨/雷雨。普通水默认安全。
-- 数值：暴露 `+1/tick`，干燥 `-1/tick`，上限 1200；`200/600/1000` → 无限中毒 0/I/II，III 级额外绿色 `dust_color_transition` 粒子；升级 `witch.drink`、降级 `fish.swim`。
+- 数值：暴露 `+1/tick`，干燥 `-1/tick`，上限 1200；`200/600/1000` → 每秒刷新一次、持续 5 秒的中毒 0/I/II，III 级额外绿色 `dust_color_transition` 粒子；到 1200 上限额外每秒刷新 5 秒凋零 0（会致死）；离开酸水后效果最多残留 5 秒；升级 `witch.drink`、降级 `fish.swim`。
 - 状态存在玩家 `persistent data`（`rw_acid_exposure` / `rw_acid_level` / `rw_acid_poison`），死亡保留；创造模式默认不受影响。
 - 配置：`config/rewasteland/acid_rain.json`（首次启动生成，附 `README-acid-rain.txt`，世界启动时重读）。
 - 配置字段：`enabled` / `acid_water_toxic` / `plain_water_toxic` / `rain_is_acidic` / `affect_creative_players` / `exposure_gain_per_tick` / `exposure_loss_per_tick` / `max_exposure` / `tier1..3_threshold`。旧配置的 `water_is_acidic` 仍会作为 `acid_water_toxic` 读取。
@@ -235,7 +235,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 3. **自定义天气机**：`doWeatherCycle=false` + 状态机，让酸雨有节奏。
 4. **食物 / 物品改皮**：1.21.1 用 `custom_model_data` + 模型 override 替代 `item_model`；撬棍贴图/模型。
 
-酸水后续（1.1.0 遗留）：① runClient 目视确认绿 tint/水下雾/遮罩/桶贴图；② 结构水（海底神殿/海底废墟/要塞）是否也转酸水；③ 桶的装/倒交互实测。
+酸水后续（1.1.0 遗留）：① runClient 目视确认酸绿贴图/水下雾/遮罩/桶贴图；② 结构水（海底神殿/海底废墟/要塞）是否也转酸水；③ 桶的装/倒交互实测。
 
 ## 12. 新会话检查清单
 
