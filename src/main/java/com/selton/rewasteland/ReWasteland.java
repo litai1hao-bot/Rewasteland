@@ -99,6 +99,9 @@ public class ReWasteland {
         NeoForge.EVENT_BUS.addListener(AcidRain::onServerStarted);
         NeoForge.EVENT_BUS.addListener(AcidRain::registerCommands);
 
+
+
+
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

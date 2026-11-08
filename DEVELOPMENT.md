@@ -121,16 +121,19 @@ MC 1.18+ 的地形高度来自 `noise_settings.noise_router` + `density_function
 |---|---|
 | desert 权重 | 只保留 `T≥0.2 && H≤0.1` 的热/干核心；参数空间 8.84% → 约 2.67%，其余并给废土 |
 | 山地格 | 沙漠/废土里 `C≥0.03 && E≤-0.375` 的子格改派 `stony_peaks`；`E≤-0.78` 改派 `jagged_peaks` |
-| 地形高度 | 自定义 `offset.json` 大陆度样条：深海 ≈ y23、海岸 ≈ y64、内陆 ≈ y68~73 |
-| 起伏 | `factor.json = 5.0`；`jaggedness.json = 0`；`sloped_cheese.json` 里 `base_3d_noise × 0.35` |
+| 地形高度 | 自定义 `offset.json`：大陆度样条（深海 ≈ y23、海岸 ≈ y64、内陆 ≈ y68~73）整体再降 0.06（约 6 格），加低频丘陵项（`ridge` 噪声 `xz_scale 0.4`，振幅 0.12）+ `ridges_folded` 河带下切（约 -0.06） |
+| 河流频率 | `dimension` 里 10 条 `minecraft:river` 参数的 weirdness 带从 ±0.05 放宽到 ±0.1；河道只沿 river 带下切，不再使用高频水道网（它会在荒原上留下大量干坑） |
+| 起伏 | `factor.json = 8.0`；`jaggedness.json = 0`；`sloped_cheese.json` 里 `base_3d_noise × 0.5` |
 | 上限 | `noise_settings` 的 `final_density` / `initial_density_without_jaggedness` 外包 `min(y_clamped_gradient 90→100)`，最高约 95 |
+| 岩洞 | 回退为原版：18 群系 carvers 恢复、`caves/entrances` 恢复；模组内不再做洞穴删除，用户后续自行安装 NoCaves |
+| 原版水颜色 | 15 个群系的 `effects.water_color` / `water_fog_color` 重置为原版蓝（4159204 / 329011），否则原版水会被群系染成绿/青色 |
 
-实测（种子 `rw-flat-3`，576 个区块）：wasteland 最高 78、p95 70；desert 最高 71；没有任何一格到 100。
+实测（种子 `rw-river-1`，432 个 full chunk）：wasteland 平均 y62.9、p95 y68、最高 y78；river 平均 y62.3、最高 y69；没有任何一格到 100。因为降了 6 格，低地大面积被淹：248 个区块有水面酸水（约 57%），水面宽 p50=13、平均 10.9 格；水深 p50=2、平均 4.5；`minecraft:water` 0。洞穴保持原版。
 
 ### 5.3 生成脚本与手改文件
 
 - `D:\MC\_port_tools\port_worldgen.js` 从上游数据包重新生成：`dimension/overworld.json`、`noise_settings`、30 个树 feature、13 个群系改皮、2 个自定义群系、tag。
-- **`data/minecraft/worldgen/density_function/overworld/` 下的 4 个文件是手写/静态文件，脚本不会重写它们**（改完 offset 样条要自己维护）。
+- **`data/minecraft/worldgen/density_function/overworld/` 下的文件是手写/静态文件，脚本不会重写它们**（改完要自己维护）。`offset.json` 现在是：大陆度样条 + 低频丘陵项 + `ridges_folded` 河带下切；`caves/entrances.json` 是原版 ×0.05 覆盖；15 个群系的 `carvers.air` 都清空了。
 - 脚本里写死了绝对路径：`PACK`（上游克隆）、`OUT`（本项目 resources）。换机器/搬目录后先核对再跑。
 - 调参常量在脚本顶部：`C_MOUNT / E_STONY / E_JAGGED / T_DESERT / H_DESERT`；地形 cap 在脚本第 2 段（`from_y: 90 / to_y: 100`）。
 
@@ -147,6 +150,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 
 `test_flat.ps1` 会：删 `run/world` → 写 `server.properties`（种子 `rw-flat-3`）→ `gradlew runServer` → RCON `locate biome` + `forceload` → `save-all` / `stop` → `dump_biome_height.js`。
 
+河流单独验证：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_river.ps1
+node D:\MC\_port_tools\analyze_river.js D:\MC\rewasteland\rewasteland-template-1.21.1\run\world\region
+node D:\MC\_port_tools\river_metrics.js D:\MC\rewasteland\rewasteland-template-1.21.1\run\world\region
+node D:\MC\_port_tools\water_metrics.js D:\MC\rewasteland\rewasteland-template-1.21.1\run\world\region
+```
+
 ### 5.5 自然水 → 酸水（1.1.0）
 
 用户要求：所有自然水都换成酸水，普通水安全，净水保留；外观最初是复用原版水贴图 + 酸绿 tint，最终改成直接使用生成的酸绿贴图。
@@ -154,6 +166,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 - **流体**：`rewasteland:acid_water`（source + flowing + LiquidBlock + 桶），独立 `FluidType`（继承 `WaterFluid` 复用流速/无限水/桶音效）。**没有加进 `#minecraft:water` 标签**：避免玻璃瓶从酸水装出净水、海绵/甘蔗/耕地/钓鱼把酸水当水；代价是水下 FOV/环境音/游泳姿态缺失（酸水致死，影响小）。
 - **客户端**：`IClientFluidTypeExtensions` 使用自定义 `acid_water_still`/`acid_water_flow`/`acid_water_overlay` 酸绿贴图（绿色已烘焙，tint 设为白色）、绿色雾、绿色水下遮罩；`ItemBlockRenderTypes.setRenderLayer(fluid, RenderType.translucent())` 必须设，否则 chunk 渲染层默认是 solid。
 - **世界生成**：`noise_settings.default_fluid` → 酸水（海洋/河流/湖泊/洞穴含水层全换）；`spring_water` → 酸水；lush 洞穴 `clay_pool_with_dripleaves` 改成无水 patch；`dripstone_cluster` 设 `wetness: 0.0`；`rewasteland:desert` 移除 `desert_well`。
+- **河流**：原版河道其实是 `offset` 样条对 `ridges_folded` 的响应（river 群系就是 weirdness≈0 的带）；之前全局压平时把这段抹掉了，导致 river 群系没有水。现在 `offset.json` 保留 river 带下切（river 的 weirdness 带 ±0.1、深度约 -0.06），不再叠高频水道网——高频水道会在荒原上切出大量干坑（2026-11-08 按用户反馈移除）。另外把内陆 offset 整体下调 0.06（约 6 格），让河床和低地落到海平面以下；实测 `rw-river-1`：432 区块中 248 个有水面酸水（约 57%），水面宽 p50=13、平均 10.9 格；水深 p50=2、平均 4.5；`minecraft:water` 0。这个降幅会让大片低地被淹，属于用户要求的 6 格版本。
+- **地形起伏**：`factor.json` 8.0、`base_3d_noise × 0.5`，再加低频丘陵项（振幅 0.12），让压平后的荒原有适度起伏；`jaggedness = 0` 去掉尖峰。6 格下移后实测 wasteland p95 y68、最高 y78，没有到 100 的列。
+- **洞穴**：尝试过生成期过滤 + `CaveRemover`，但用户认为效果不行，2026-11-08 回退到“只降低地形高度”的版本；18 群系 carvers 和 `caves/entrances` 已恢复原版，`CaveRemover`/`remove_features`/`cave_decor` 全部删除。后续洞穴由用户自行安装 NoCaves 处理。
+- **原版水颜色**：15 个群系的 `effects.water_color` / `water_fog_color` 已重置为原版蓝（4159204 / 329011）。之前沿用上游的绿/青色，导致结构水、玩家水桶等原版水看起来也是绿的；酸水用自定义贴图/tint/雾，不受影响。
 - **已知遗留**：海底神殿/海底废墟/要塞是 Java 结构代码里硬编码放 `minecraft:water`，数据包改不了；目前保留（可当净水点），要处理得加 Mixin/结构覆盖。客户端观感 2026-11-08 尚未目视验证。
 - **净水**：自然水全酸后，水桶只能从雨天炼药锅装净水（滴水石需要 `#minecraft:water` 上方，不会在酸水上滴）。
 - **验证**（2026-11-08，种子 `rw-acid-1`，207 区块）：`rewasteland:acid_water` 114239 格 / 88 区块，`minecraft:water` 0；`/place feature minecraft:spring_water` 生成酸水；酸水接触 `exposed=true`、普通水 `false`；210 tick → level 1、poison amp 0 dur -1。
@@ -194,6 +210,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 | `test_acid.ps1` | 酸雨状态机（强制暴露） |
 | `test_acid_env.ps1` | 酸水/普通水/雨/遮挡判定 |
 | `test_acidwater.ps1` | 新世界生成统计（酸水/原版水）+ 放置/流动/spring 覆盖冒烟 |
+| `test_river.ps1` / `analyze_river.js` | 河流：locate river + forceload，统计 river 群系区块与河床酸水 |
+| `river_metrics.js` / `water_metrics.js` | 河道宽度/深度指标：水面列数、连续水深、沿 x/z 的水面连通宽度 |
+| `cave_metrics.js` / `cave_exposure.js` | 洞穴空气统计：按 Y 分段计数，判断 `cave_air` 是否高于地表（暴露） |
+| `cave_decor.js` | 统计滴水石/苔藓/藤蔓/紫水晶/幽匿/发光地衣等洞穴装饰残留 |
 | `probe_acidlogic.ps1` | 酸水/普通水/酸雨/中毒分级实测 |
 | `dump_fluids.js` / `analyze_fluids.js` | 解析 region，统计酸水/原版水与按群系/结构分布 |
 
@@ -213,6 +233,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.
 - **mod 构造期不要静态 `new Fluid`**：`Fluid` 构造会 `createIntrusiveHolder`，此时注册表已冻结 → `IllegalStateException: Registry is already frozen`。用 `DeferredRegister` 在注册事件里懒创建；block 注册事件在 fluid 之后，所以方块构造里可以安全 `get()` 流体 holder。
 - 自定义流体的 chunk 渲染层默认 `solid`，必须 `ItemBlockRenderTypes.setRenderLayer(fluid, RenderType.translucent())`。
 - 自然水不止 `default_fluid`：`spring_water`、lush 洞穴黏土水池、`dripstone_cluster` 水池、`desert_well` 都会放原版水；海底神殿/海底废墟/要塞是 Java 代码硬编码。
+- 河流不是单独的 density function：它藏在 `offset` 样条对 `ridges_folded` 的响应里。全局压平/重写 offset 时必须保留或重建这段河道下切，否则 river 群系会生成但没有水。
+- 群系的 `effects.water_color` / `water_fog_color` 会影响**原版水**的 tint 和雾；把所有自然水换成酸水后，这两个值要重置为原版蓝，否则结构水/玩家放的水也会发绿。
+- 河流/水道宽度对下切样条的阈值非常敏感：`|ridge|` 阈值稍大就会出现整块水面，稍小就只剩地下含水层。调完一定要用 `river_metrics.js` / `water_metrics.js` 看水面宽度、深度和出现区块数，不能只看酸水总格数。
+- 不要为了增加河道数量直接在 offset 里叠高频 `ridge` 水道网：它会在平坦荒原上切出大量干坑，实机地面会变得坑坑洼洼。要更多河就加规则的 river band（或调 weirdness 参数），代价是 biome 分布变化。
+- `caves/entrances` 密度**不能直接设 0**：实测会把整个地表地形生成搞崩（wasteland 平均高度掉到 y-7）。这是试做洞穴删除时的教训，现已回退，模组不碰洞穴。
+- 河道下切和河宽是耦合的：同样 ±0.1 的 river band，下切从 -0.06 加深到 -0.075 会把水面 p50 从 9 推到 11~15，想保持窄必须同时收窄平台（folded -0.97）。
 - `#minecraft:water` 标签不等于“水生生物会生成”：`WaterAnimal` 还要求上方方块是 `minecraft:water` 方块；加标签只影响 drowned/guardian，且它们不会正常游泳。
 - PowerShell 5.1 把命令传给原生程序会剥掉内嵌双引号，含 SNBT `id:"..."` 的 RCON 测试命令会坏；测试时避开引号或让 `rcon.js` 从文件读命令。
 

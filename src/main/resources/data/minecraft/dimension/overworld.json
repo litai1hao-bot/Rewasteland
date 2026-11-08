@@ -4866,8 +4866,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               -0.19,
@@ -4896,8 +4896,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               -0.19,
@@ -4926,8 +4926,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               -0.11,
@@ -5226,8 +5226,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               0.03,
@@ -5256,8 +5256,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               0.03,
@@ -15246,8 +15246,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               -0.19,
@@ -15276,8 +15276,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               -0.19,
@@ -15306,8 +15306,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               -0.11,
@@ -15606,8 +15606,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               0.03,
@@ -15636,8 +15636,8 @@
         {
           "parameters": {
             "weirdness": [
-              -0.05,
-              0.05
+              -0.1,
+              0.1
             ],
             "continentalness": [
               0.03,

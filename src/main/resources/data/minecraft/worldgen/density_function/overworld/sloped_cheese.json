@@ -30,7 +30,7 @@
   },
   "argument2": {
     "type": "minecraft:mul",
-    "argument1": 0.35,
+    "argument1": 0.5,
     "argument2": "minecraft:overworld/base_3d_noise"
   }
 }

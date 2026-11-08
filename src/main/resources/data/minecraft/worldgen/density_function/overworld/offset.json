@@ -1,48 +1,107 @@
 {
-  "type": "minecraft:spline",
-  "spline": {
-    "coordinate": "minecraft:overworld/continents",
-    "points": [
-      {
-        "location": -1.2,
-        "derivative": 0,
-        "value": -0.85
-      },
-      {
-        "location": -0.6,
-        "derivative": 0,
-        "value": -0.82
-      },
-      {
-        "location": -0.455,
-        "derivative": 0,
-        "value": -0.72
-      },
-      {
-        "location": -0.19,
-        "derivative": 0,
-        "value": -0.5
-      },
-      {
-        "location": -0.11,
-        "derivative": 0,
-        "value": -0.48
-      },
-      {
-        "location": 0.03,
-        "derivative": 0,
-        "value": -0.47
-      },
-      {
-        "location": 0.3,
-        "derivative": 0,
-        "value": -0.45
-      },
-      {
-        "location": 1,
-        "derivative": 0,
-        "value": -0.43
+  "type": "minecraft:add",
+  "argument1": {
+    "type": "minecraft:add",
+    "argument1": {
+      "type": "minecraft:spline",
+      "spline": {
+        "coordinate": "minecraft:overworld/continents",
+        "points": [
+          {
+            "location": -1.2,
+            "derivative": 0,
+            "value": -0.85
+          },
+          {
+            "location": -0.6,
+            "derivative": 0,
+            "value": -0.82
+          },
+          {
+            "location": -0.455,
+            "derivative": 0,
+            "value": -0.78
+          },
+          {
+            "location": -0.19,
+            "derivative": 0,
+            "value": -0.56
+          },
+          {
+            "location": -0.11,
+            "derivative": 0,
+            "value": -0.54
+          },
+          {
+            "location": 0.03,
+            "derivative": 0,
+            "value": -0.53
+          },
+          {
+            "location": 0.3,
+            "derivative": 0,
+            "value": -0.51
+          },
+          {
+            "location": 1,
+            "derivative": 0,
+            "value": -0.49
+          }
+        ]
       }
-    ]
+    },
+    "argument2": {
+      "type": "minecraft:mul",
+      "argument1": 0.12,
+      "argument2": {
+        "type": "minecraft:noise",
+        "noise": "minecraft:ridge",
+        "xz_scale": 0.4,
+        "y_scale": 0.0
+      }
+    }
+  },
+  "argument2": {
+    "type": "minecraft:spline",
+    "spline": {
+      "coordinate": "minecraft:overworld/ridges_folded",
+      "points": [
+        {
+          "location": -1.0,
+          "derivative": 0.0,
+          "value": -0.06
+        },
+        {
+          "location": -0.94,
+          "derivative": 0.0,
+          "value": -0.06
+        },
+        {
+          "location": -0.91,
+          "derivative": 0.0,
+          "value": -0.038
+        },
+        {
+          "location": -0.88,
+          "derivative": 0.0,
+          "value": -0.012
+        },
+        {
+          "location": -0.85,
+          "derivative": 0.0,
+          "value": 0.0
+        },
+        {
+          "location": 0.0,
+          "derivative": 0.0,
+          "value": 0.0
+        },
+        {
+          "location": 1.0,
+          "derivative": 0.0,
+          "value": 0.0
+        }
+      ]
+    }
   }
 }
