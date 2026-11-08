@@ -6,6 +6,8 @@
 玩法参考 [Acid Wasteland](https://modrinth.com/project/acid-wasteland)（数据包，MIT），
 本仓库是它的 1.21.1 / NeoForge 移植与扩展，数据部分为重新生成/降级改写，不是原样搬运。
 
+开发与维护说明（环境、目录、世界生成调参、测试工具）见 [DEVELOPMENT.md](DEVELOPMENT.md)。
+
 ## 当前进度
 
 | 模块 | 状态 | 说明 |
