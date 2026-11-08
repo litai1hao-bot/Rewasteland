@@ -15,7 +15,8 @@
 | 世界生成 | ✅ | 自定义 overworld 气候表（18 群系）、全局压平地形（无高山）、沙漠缩减、地表换土、全树枯枝 |
 | 结构 | ✅ | 荒屋 ×4、幸存者营地 ×5，按群系标签生成 |
 | 结构战利品 | ✅ | 外置到 `config/rewasteland/structure_looting/`，可逐表改 JSON |
-| 酸雨中毒 | ✅ | 水中 / 露天降雨累积暴露值，3 级无限中毒；参数在 `config/rewasteland/acid_rain.json` |
+| 酸水方块 | ✅ | 所有自然水换成 `rewasteland:acid_water`；流体/方块/桶，绿色外观；普通水安全 |
+| 酸雨中毒 | ✅ | 酸水 / 露天降雨累积暴露值，3 级无限中毒；参数在 `config/rewasteland/acid_rain.json` |
 | 变异（吃食物触发） | 🚧 | 计划中 |
 | 怪物变种与装备 | 🚧 | 计划中 |
 | 自定义天气机 | 🚧 | 计划中 |
@@ -30,7 +31,7 @@
 ## 构建
 
 ```bash
-./gradlew build          # 产物：build/libs/rewasteland-1.0.0.jar
+./gradlew build          # 产物：build/libs/rewasteland-1.1.0.jar
 ./gradlew runClient      # 开发客户端
 ./gradlew runServer      # 开发服务端（test world 在 run/）
 ```
@@ -62,12 +63,21 @@ config/rewasteland/structure_looting/
 
 首次启动会生成 `config/rewasteland/acid_rain.json`（同目录带 `README-acid-rain.txt`）：
 
-- 在水中（脚或头所在方块）或露天降雨 / 雷雨时，每 tick 累积 1 点暴露值；
-  干燥时每 tick 减少 1 点，上限 1200。
+- 在酸水中（脚或头所在方块）或露天降雨 / 雷雨时，每 tick 累积 1 点暴露值；
+  干燥时每 tick 减少 1 点，上限 1200。普通水默认安全。
 - 200 / 600 / 1000 点分别进入中毒 0 / I / II（无限时长），第三级额外冒绿色粒子。
 - 默认 10 秒 / 30 秒 / 50 秒连续暴露进入三级；创造模式默认不受影响
   （`affect_creative_players` 可开）。
 - 调试：op 可用 `/rwacid <ticks> <exposed>` 强制暴露、`/rwacid auto <ticks>` 按环境判定，`/rwacid reset` 清空。
+
+## 酸水方块
+
+- 自然生成的水（海洋 / 河流 / 湖泊 / 洞穴含水层 / 泉水）全部替换为 `rewasteland:acid_water`；
+  沿用原版水的流动、溺水、船等行为，外观复用原版水贴图 + 酸绿 tint。
+- 酸水没有加进 `#minecraft:water` 标签：玻璃瓶 / 海绵 / 甘蔗 / 耕地 / 钓鱼不会把它当水；
+  普通水保持安全。水桶只能从雨天炼药锅装净水。
+- 海底神殿 / 海底废墟 / 要塞内部仍会生成原版水（结构代码硬编码，后续再处理）。
+- 调试：`/place feature minecraft:spring_water` 应生成酸水；用 `/rwacid auto` 在酸水里应累计暴露，在普通水里不累计。
 
 ## 目录约定
 
