@@ -13,16 +13,20 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustColorTransitionOptions;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -33,16 +37,17 @@ import org.joml.Vector3f;
 import org.slf4j.Logger;
 
 /**
- * Acid rain / toxic water.
+ * Acid rain / acid water.
  *
  * <p>Every tick a server player in the overworld is checked for exposure:
  * <ul>
- *   <li>standing in water (feet or head block), unless riding a vehicle;</li>
+ *   <li>standing in acid water (feet or head block), unless riding a vehicle;</li>
  *   <li>standing under the open sky while it rains or thunders.</li>
  * </ul>
- * Exposure rises by {@code exposure_gain_per_tick} while exposed and falls by
- * {@code exposure_loss_per_tick} while dry. Tier thresholds then apply an infinite poison effect:
- * tier 1 = poison, tier 2 = poison I, tier 3 = poison II + green particles.
+ * Plain water is safe unless {@code plain_water_toxic} is turned on. Exposure rises by
+ * {@code exposure_gain_per_tick} while exposed and falls by {@code exposure_loss_per_tick} while
+ * dry. Tier thresholds then apply an infinite poison effect: tier 1 = poison, tier 2 = poison I,
+ * tier 3 = poison II + green particles.
  *
  * <p>All tunables live in {@code config/rewasteland/acid_rain.json}; the file is re-read on every
  * server start and defaults are written on first launch.
@@ -57,10 +62,15 @@ public final class AcidRain {
 
     private static final String CONFIG_NAME = "acid_rain.json";
 
+    /** Fluid tag of acid water; also set in data/rewasteland/tags/fluid/acid_water.json. */
+    public static final TagKey<Fluid> ACID_WATER_TAG =
+            TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath(ReWasteland.MODID, "acid_water"));
+
     private static final String DEFAULT_CONFIG = """
             {
               "enabled": true,
-              "water_is_acidic": true,
+              "acid_water_toxic": true,
+              "plain_water_toxic": false,
               "rain_is_acidic": true,
               "affect_creative_players": false,
               "exposure_gain_per_tick": 1,
@@ -73,19 +83,23 @@ public final class AcidRain {
             """;
 
     private static final String README = """
-            ReWasteland - acid rain / toxic water
-            =====================================
+            ReWasteland - acid rain / acid water
+            ====================================
 
             File: config/rewasteland/acid_rain.json
             Re-read every time the world starts.
 
             Every tick, for each non-creative player in the overworld:
-              - in water (feet or head), or
+              - in acid water (feet or head), or
               - under open sky while raining / thundering
               -> exposure += exposure_gain_per_tick
               otherwise
               -> exposure -= exposure_loss_per_tick
             Exposure is clamped to 0..max_exposure.
+
+            Acid water is rewasteland:acid_water (tag #rewasteland:acid_water).
+            Plain minecraft:water is safe unless "plain_water_toxic" is true
+            (the legacy "water_is_acidic" key is still read as acid_water_toxic).
 
             Tiers (infinite poison while exposed):
               tier1_threshold .. tier2-1   poison 0      (default 200..599)
@@ -144,17 +158,24 @@ public final class AcidRain {
             int t1 = Math.max(1, cfg.tier1_threshold);
             int t2 = Math.max(t1 + 1, cfg.tier2_threshold);
             int t3 = Math.max(t2 + 1, cfg.tier3_threshold);
+            // New keys win; the legacy water_is_acidic only drives acid water toxicity.
+            boolean acidWaterToxic = cfg.acid_water_toxic != null
+                    ? cfg.acid_water_toxic
+                    : (cfg.water_is_acidic != null ? cfg.water_is_acidic : true);
+            boolean plainWaterToxic = cfg.plain_water_toxic != null && cfg.plain_water_toxic;
             settings = new AcidRainLogic.Settings(
                     cfg.enabled,
-                    cfg.water_is_acidic,
+                    acidWaterToxic,
+                    plainWaterToxic,
                     cfg.rain_is_acidic,
                     cfg.affect_creative_players,
                     Math.max(0, cfg.exposure_gain_per_tick),
                     Math.max(0, cfg.exposure_loss_per_tick),
                     Math.max(1, cfg.max_exposure),
                     t1, t2, t3);
-            LOGGER.info("Acid rain config loaded: enabled={}, thresholds={}/{}/{}",
-                    settings.enabled(), settings.tier1(), settings.tier2(), settings.tier3());
+            LOGGER.info("Acid rain config loaded: enabled={}, acidWater={}, plainWater={}, thresholds={}/{}/{}",
+                    settings.enabled(), settings.acidWaterToxic(), settings.plainWaterToxic(),
+                    settings.tier1(), settings.tier2(), settings.tier3());
         } catch (IOException | RuntimeException e) {
             LOGGER.error("Could not read {} - keeping previous acid rain settings", json, e);
         }
@@ -221,9 +242,11 @@ public final class AcidRain {
             return false;
         }
         BlockPos pos = player.blockPosition();
-        if (settings.waterAcidic() && player.getVehicle() == null) {
-            if (level.getFluidState(pos).is(FluidTags.WATER)
-                    || level.getFluidState(pos.above()).is(FluidTags.WATER)) {
+        if (player.getVehicle() == null) {
+            if (settings.acidWaterToxic() && isInFluid(level, pos, ACID_WATER_TAG)) {
+                return true;
+            }
+            if (settings.plainWaterToxic() && isInFluid(level, pos, FluidTags.WATER)) {
                 return true;
             }
         }
@@ -231,6 +254,11 @@ public final class AcidRain {
             return level.canSeeSky(pos.above());
         }
         return false;
+    }
+
+    /** True when the feet or head block contains a fluid in the given tag. */
+    private static boolean isInFluid(ServerLevel level, BlockPos pos, TagKey<Fluid> tag) {
+        return level.getFluidState(pos).is(tag) || level.getFluidState(pos.above()).is(tag);
     }
 
     private static void apply(ServerLevel level, ServerPlayer player, CompoundTag data, int oldLevel, int newLevel) {
@@ -340,7 +368,10 @@ public final class AcidRain {
     /** Shape of acid_rain.json (Gson field names must match the file). */
     private static final class JsonConfig {
         boolean enabled = true;
-        boolean water_is_acidic = true;
+        /** Legacy key: only used for acid water toxicity when the new key is absent. */
+        Boolean water_is_acidic;
+        Boolean acid_water_toxic;
+        Boolean plain_water_toxic;
         boolean rain_is_acidic = true;
         boolean affect_creative_players = false;
         int exposure_gain_per_tick = 1;

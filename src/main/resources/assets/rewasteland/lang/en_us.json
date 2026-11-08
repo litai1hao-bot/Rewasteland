@@ -2,17 +2,18 @@
   "itemGroup.rewasteland": "Example Mod Tab",
   "block.rewasteland.example_block": "Example Block",
   "item.rewasteland.example_item": "Example Item",
-
   "rewasteland.crowbar": "Crowbar",
   "rewasteland.when_in_main_hand": "When in Main Hand:",
   "rewasteland.10_attack_damage": " 10 Attack Damage",
   "rewasteland.1_attack_speed": " 1 Attack Speed",
-
   "rewasteland.configuration.title": "ReWasteland Configs",
   "rewasteland.configuration.section.rewasteland.common.toml": "ReWasteland Configs",
   "rewasteland.configuration.section.rewasteland.common.toml.title": "ReWasteland Configs",
   "rewasteland.configuration.items": "Item List",
   "rewasteland.configuration.logDirtBlock": "Log Dirt Block",
   "rewasteland.configuration.magicNumberIntroduction": "Magic Number Text",
-  "rewasteland.configuration.magicNumber": "Magic Number"
+  "rewasteland.configuration.magicNumber": "Magic Number",
+  "block.rewasteland.acid_water": "Acid Water",
+  "item.rewasteland.acid_water_bucket": "Acid Water Bucket",
+  "fluid_type.rewasteland.acid_water": "Acid Water"
 }

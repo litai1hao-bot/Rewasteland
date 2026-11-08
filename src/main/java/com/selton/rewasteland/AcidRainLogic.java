@@ -5,13 +5,14 @@ package com.selton.rewasteland;
  *
  * <p>Deliberately free of Minecraft imports so the ramp/tier rules can be tested on their own.
  * The rule mirrors the Acid Wasteland datapack: every tick the meter either gains while the
- * player is exposed (water / open-sky rain) or loses while dry, clamped to {@code 0..max}.
+ * player is exposed (acid water / open-sky rain) or loses while dry, clamped to {@code 0..max}.
  */
 public final class AcidRainLogic {
     /** Tunables loaded from {@code config/rewasteland/acid_rain.json}. */
     public record Settings(
             boolean enabled,
-            boolean waterAcidic,
+            boolean acidWaterToxic,
+            boolean plainWaterToxic,
             boolean rainAcidic,
             boolean affectCreative,
             int gainPerTick,
@@ -30,7 +31,7 @@ public final class AcidRainLogic {
     }
 
     public static Settings defaults() {
-        return new Settings(true, true, true, false, 1, 1, 1200, 200, 600, 1000);
+        return new Settings(true, true, false, true, false, 1, 1, 1200, 200, 600, 1000);
     }
 
     /** Advances one game tick; {@code exposed} means acid water or acid rain is hitting the player. */

@@ -2,17 +2,18 @@
   "itemGroup.rewasteland": "示例模组栏位",
   "block.rewasteland.example_block": "示例方块",
   "item.rewasteland.example_item": "示例物品",
-
   "rewasteland.crowbar": "撬棍",
   "rewasteland.when_in_main_hand": "在惯用手时:",
   "rewasteland.10_attack_damage": " 10 攻击伤害",
   "rewasteland.1_attack_speed": " 1 攻击速度",
-
   "rewasteland.configuration.title": "ReWasteland 配置",
   "rewasteland.configuration.section.rewasteland.common.toml": "ReWasteland 配置",
   "rewasteland.configuration.section.rewasteland.common.toml.title": "ReWasteland 配置",
   "rewasteland.configuration.items": "物品列表",
   "rewasteland.configuration.logDirtBlock": "记录泥土方块",
   "rewasteland.configuration.magicNumberIntroduction": "魔法数字文本",
-  "rewasteland.configuration.magicNumber": "魔法数字"
+  "rewasteland.configuration.magicNumber": "魔法数字",
+  "block.rewasteland.acid_water": "酸水",
+  "item.rewasteland.acid_water_bucket": "酸水桶",
+  "fluid_type.rewasteland.acid_water": "酸水"
 }
