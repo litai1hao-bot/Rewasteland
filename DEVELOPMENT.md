@@ -1,6 +1,6 @@
 # ReWasteland 开发文档
 
-> 给下一个会话 / 新维护者的快速上手说明。最后更新：2026-11-09。玩家/服主手册见 [MANUAL.md](MANUAL.md)。
+> 给下一个会话 / 新维护者的快速上手说明。最后更新：2026-11-09。
 > 仓库：https://github.com/litai1hao-bot/Rewasteland （Public / main / MIT）
 
 ## 0. 30 秒上手
@@ -27,7 +27,7 @@ git status
   4. 酸雨 / 水中毒：暴露值 + 3 级中毒（每秒刷新 5 秒，1200 上限额外凋零），参数外置到 `config/rewasteland/acid_rain.json`；**只在废土世界类型生效**。
   5. 酸水方块：自然生成的水全部换成 `rewasteland:acid_water`（只限废土世界）；水的毒性只作用于酸水（普通水安全）；独立 FluidType + 流体方块 + 桶，客户端酸绿贴图/雾/水下遮罩。
   6. GitHub 开源：MIT、CI、README。
-- 还没做：吃食物变异、怪物变种与装备、自定义天气机、食物/物品改皮、撬棍贴图/模型。
+- 还没做：自定义天气机、撬棍贴图/模型。
 
 ## 2. 环境与构建
 
@@ -310,16 +310,12 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 
 ## 11. 下一步建议
 
-按上游 Acid Wasteland 的系统顺序：
-
-1. **吃食物变异**：带 `custom_data.mutate` 的废土食物吃 5 份 → 60 秒属性 buff（攻 10 / 速 0.15 / 体型 1.5）。
-2. **怪物变种与装备**：`#zombies` 标签 + attribute + 装备战利品表。
-3. **自定义天气机**：`doWeatherCycle=false` + 状态机，让酸雨有节奏。
-4. **食物 / 物品改皮**：1.21.1 用 `custom_model_data` + 模型 override 替代 `item_model`；撬棍贴图/模型。
+1. **自定义天气机**：`doWeatherCycle=false` + 状态机，让酸雨有节奏。
+2. **撬棍贴图 / 模型**：1.21.1 用 `custom_model_data` + 模型 override 替代 `item_model`。
 
 酸水后续（1.1.0 遗留）：① runClient 目视确认酸绿贴图/水下雾/遮罩/桶贴图；② 结构水（海底神殿/海底废墟/要塞）是否也转酸水；③ 桶的装/倒交互实测。
 
-1.2.0 后续：① runClient 目视确认「世界类型」列表里出现「废土世界」并可选（tag 机制已按源码核对，UI 未目视）；② 第三方建筑 mod 兼容（影子副本：复制对方 structure JSON 换 id + biomes，模板引用对方命名空间，见记忆/文档）；③ 可以把 `is_wasteland` 标签扩展成包含更多废土群系，让自定义结构在老版改皮群系里也生成。
+1.2.0 后续：① runClient 目视确认「世界类型」列表里出现「废土世界」并可选（tag 机制已按源码核对，UI 未目视）；② 第三方兼容包密度调稀（`tnas_spafner` / `lostcity_post` 等出现过多）；③ 可选补 `hbm:has_structure/submarine`、清理仓库多余 tag `main`。
 
 ## 12. 新会话检查清单
 
