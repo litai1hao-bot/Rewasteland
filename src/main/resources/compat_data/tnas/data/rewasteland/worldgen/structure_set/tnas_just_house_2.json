@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:tnas_just_house_2",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 150,
+    "separation": 60,
+    "salt": 1750335269
+  }
+}

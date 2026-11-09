@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:tnas_tower_spruce_1",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 60,
+    "separation": 30,
+    "salt": 812838197
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:lostcity_brocken_camp",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 30,
+    "separation": 15,
+    "salt": 541139603
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:lostcity_road_1",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 15,
+    "separation": 10,
+    "salt": 1346347361,
+    "exclusion_zone": {
+      "other_set": "the_lost_city:city",
+      "chunk_count": 16
+    }
+  }
+}

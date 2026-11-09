@@ -69,6 +69,10 @@ public class ReWasteland {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
+        // Optional third-party structure bridges: built-in data packs, only enabled when the
+        // source mod (TNAS / The Lost City) is installed.
+        modEventBus.addListener(CompatDataPacks::onAddPackFinders);
+
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered

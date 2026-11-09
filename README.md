@@ -36,6 +36,7 @@
 ## 第三方模组兼容
 
 - **NTM-Continuum（HBM）**：1.2.0 起自带兼容标签（`data/hbm/tags/worldgen/biome/biome_dictionary/*`），废土世界里的沙漠、海洋、河岸、平原类 NTM 结构会正常生成；NTM 不在时这些标签不产生任何影响。
+- **TNew Apocalypse Structure / The Lost City**：1.2.0 起兼容结构**内置在模组里**（`compat_data/`，检测到对应模组才会注册为内建数据包），不需要手动往 `world/datapacks` 放包；需要新世界或未探索的区块才会出现。The Lost City 还需要 `berezka_api`。
 - 需要 `hbm` 和 `golemcore` 两个 1.21.1 NeoForge jar；NTM 的 `/locate` 很慢（单次数十秒到数分钟）属于它自身实现，和本模组无关。
 - **性能提示**：NTM 在非原版群系上生成结构很重（默认配置下出生区生成从 3.5 秒涨到 121 秒）。建议把 `config/hbm.cfg` 的 `5.02_structureMaxChunks` 调到 32、`5.01_structureMinChunks` 调到 8；实测可回到 ~3.8 秒，代价是 NTM 结构更稀。
 
