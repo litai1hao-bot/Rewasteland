@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "rewasteland:ocean",
+    "rewasteland:deep_ocean",
+    "rewasteland:lukewarm_ocean",
+    "rewasteland:deep_lukewarm_ocean",
+    "rewasteland:warm_ocean"
+  ]
+}

@@ -16,6 +16,7 @@
 | 世界生成 | ✅ | 自定义 overworld 气候表（18 群系）、适度起伏地形（6 格下移，低地多水、无高山）、沙漠缩减、地表换土、全树枯枝、窄深河流；洞穴保持原版，建议另装 NoCaves |
 | 结构 | ✅ | 荒屋 ×4、幸存者营地 ×5，按群系标签生成 |
 | 结构战利品 | ✅ | 外置到 `config/rewasteland/structure_looting/`，可逐表改 JSON |
+| 第三方结构兼容 | ✅ | NTM-Continuum：废土群系接入它的 1.7 生物群系字典，废土/沙漠/海洋类结构都能生成 |
 | 酸水方块 | ✅ | 废土世界里自然水换成 `rewasteland:acid_water`；流体/方块/桶，绿色外观；普通水安全 |
 | 酸雨中毒 | ✅ | 只在废土世界：酸水 / 露天降雨累积暴露值；200/600/1000 每秒刷新 5 秒中毒 0/I/II，1200 上限额外凋零；参数在 `config/rewasteland/acid_rain.json` |
 | 变异（吃食物触发） | 🚧 | 计划中 |
@@ -25,12 +26,17 @@
 
 ## 世界类型
 
-1.1.4 起世界生成是**可选**的，不再直接改写原版主世界：
+1.1.5 起世界生成是**可选**的，不再直接改写原版主世界：
 
 - 单人：创建新世界 →「世界类型」里选 **废土世界**（`rewasteland:wasteland`）；选默认/超平坦/放大化就是原版世界。
 - 服务器：`server.properties` 里 `level-type=rewasteland:wasteland`（不写 = `minecraft:normal`）。
 - 酸雨、酸水、废土地形、自定义结构只在废土世界类型里出现；同一个 mod 装着的原版世界保持普通水、普通天气、原版群系。
-- 1.1.3 及更早的旧存档创建时是“默认”世界类型，升级到 1.1.4 后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
+- 1.1.3 及更早的旧存档创建时是“默认”世界类型，升级到 1.1.5 后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
+
+## 第三方模组兼容
+
+- **NTM-Continuum（HBM）**：1.1.5 起自带兼容标签（`data/hbm/tags/worldgen/biome/biome_dictionary/*`），废土世界里的沙漠、海洋、河岸、平原类 NTM 结构会正常生成；NTM 不在时这些标签不产生任何影响。
+- 需要 `hbm` 和 `golemcore` 两个 1.21.1 NeoForge jar；NTM 的 `/locate` 很慢（单次数十秒到数分钟）属于它自身实现，和本模组无关。
 
 ## 运行要求
 
@@ -41,7 +47,7 @@
 ## 构建
 
 ```bash
-./gradlew build          # 产物：build/libs/rewasteland-1.1.4.jar
+./gradlew build          # 产物：build/libs/rewasteland-1.1.5.jar
 ./gradlew runClient      # 开发客户端
 ./gradlew runServer      # 开发服务端（test world 在 run/）
 ```

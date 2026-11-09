@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "rewasteland:desert",
+    "rewasteland:badlands",
+    "rewasteland:eroded_badlands",
+    "rewasteland:wooded_badlands"
+  ]
+}
