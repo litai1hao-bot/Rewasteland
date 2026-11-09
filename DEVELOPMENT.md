@@ -240,7 +240,7 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 - 实测（1.1.5 + NTM 1.0.4 + golemcore build.11，种子 `rw-worldtype-1`）：两 mod 正常共存，废土世界完好（400 chunk：wasteland 82.9% 粗土、ocean 100% 酸水、普通水 0）；`ruinf` 136 格、`bunker` 587、`ruina` 883；补标签后 `desert_shack_1` 与 `oil_rig` 也能被 `/locate` 找到。
 - **坑**：NTM 的 `/locate` 极慢（单次 14–200 秒：它每个候选区块都跑 1.7 谓词 + 25 点地形采样，`wins()` 再遍历全部结构），调试时把 `server.properties` 的 `max-tick-time` 设 `-1`，否则 60 秒看门狗会直接杀服（看起来像崩溃）。正常区块生成不受影响（400 chunk 约 25 秒）。
 - `meteor_dungeon` 的谓词是 `rootHeight >= 0`，废土地表平均 y≈63 → 基本不会生成；`hbm:silo` 在 release 1.0.4 里没有注册。这两条属于 NTM 自身/版本差异，不是兼容包的问题。
-- **性能坑（重要）**：NTM 对非原版群系没有查表，`wins()` 里每个匹配结构都要用 5×5 地形采样反推高度。实测出生区生成：无 NTM 3.5s；NTM 默认 spacing 16 → **121s**；spacing 32 → 3.8s；spacing 48 → 3.7s；`5.00_enableStructures=false` → 3.9s。所以装 NTM 后建议把 `hbm.cfg` 的 `5.02_structureMaxChunks` 调 48、`5.01_structureMinChunks` 调 12（代价是 NTM 结构更稀）。开销只发生在“候选区块”（spacing 16 时每 256 区块一次，单次约 1 分钟），所以默认配置下探索时会周期性卡顿。
+- **性能坑（重要）**：NTM 对非原版群系没有查表，`wins()` 里每个匹配结构都要用 5×5 地形采样反推高度。实测出生区生成：无 NTM 3.5s；NTM 默认 spacing 16 → **121s**；spacing 32 → 3.8s；spacing 48 → 3.7s；`5.00_enableStructures=false` → 3.9s。用户 2026-11-09 选定 **32/8**（`hbm.cfg` 的 `5.02_structureMaxChunks=32`、`5.01_structureMinChunks=8`），`run/config/hbm.cfg` 已按此设置。开销只发生在“候选区块”（spacing 16 时每 256 区块一次，单次约 1 分钟），所以默认配置下探索时会周期性卡顿。
 
 ## 8. 测试工具（D:\MC\_port_tools）
 
