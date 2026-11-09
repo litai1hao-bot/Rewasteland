@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:lostcity_big_city_structure",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 24,
+    "separation": 12,
+    "salt": 14032026
+  }
+}

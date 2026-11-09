@@ -1,0 +1,18 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:lostcity_post",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 10,
+    "separation": 5,
+    "salt": 2015430539,
+    "exclusion_zone": {
+      "other_set": "the_lost_city:city",
+      "chunk_count": 16
+    }
+  }
+}

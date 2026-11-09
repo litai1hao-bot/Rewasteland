@@ -1,0 +1,15 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:lostcity_infinity_city",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "the_lost_city:grid_placement",
+    "spacing": 1,
+    "separation": 0,
+    "spread_type": "linear",
+    "salt": 14032026
+  }
+}

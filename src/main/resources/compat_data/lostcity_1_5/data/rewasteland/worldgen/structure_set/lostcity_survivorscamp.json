@@ -1,0 +1,18 @@
+{
+  "structures": [
+    {
+      "structure": "rewasteland:lostcity_survivorscamp",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 40,
+    "separation": 30,
+    "salt": 841035629,
+    "exclusion_zone": {
+      "other_set": "the_lost_city:city",
+      "chunk_count": 16
+    }
+  }
+}
