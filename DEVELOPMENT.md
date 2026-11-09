@@ -8,17 +8,17 @@
 ```powershell
 cd D:\MC\rewasteland\rewasteland-template-1.21.1
 git status
-.\gradlew.bat build                 # 产物 build/libs/rewasteland-2.0.0.jar
+.\gradlew.bat build                 # 产物 build/libs/rewasteland-1.1.4.jar
 ```
 
 - 本地项目目录：`D:\MC\rewasteland\rewasteland-template-1.21.1`（**2026-11-08 从 `D:\MC\rewasteland-template-1.21.1` 搬过来**，旧脚本里可能有旧路径）。
-- 上游参考仓库（1.21.4 数据包）：`D:\MC\rewasteland\wasteland-datapack`。
+- 上游参考仓库（1.21.4 数据包）：`D:\MC\rewasteland\example_mod\wasteland-datapack`。
 - 参考数据 / 工具：`D:\MC\_vanilla_1211`、`D:\MC\_vanilla_1214`、`D:\MC\_vanilla_1211_df`、`D:\MC\_port_tools`。
-- 当前状态：世界生成（2.0.0 起是独立世界类型 `rewasteland:wasteland`）+ 结构 + 结构战利品 + 酸雨 + 酸水方块，版本 2.0.0。
+- 当前状态：世界生成（1.1.4 起是独立世界类型 `rewasteland:wasteland`）+ 结构 + 结构战利品 + 酸雨 + 酸水方块，版本 1.1.4。
 
 ## 1. 项目速览
 
-- **MC 1.21.1 / NeoForge 21.1.265** 的废土生存模组，mod id `rewasteland`，包名 `com.selton.rewasteland`，版本 `2.0.0`。
+- **MC 1.21.1 / NeoForge 21.1.265** 的废土生存模组，mod id `rewasteland`，包名 `com.selton.rewasteland`，版本 `1.1.4`。
 - 原型是 Modrinth 上的 **Acid Wasteland**（纯 1.21.4 数据包，MIT）：本仓库是它的 1.21.1 / NeoForge 移植 + 扩展，世界生成不是原样搬运，而是重新生成 / 降级改写。
 - 已完成模块：
   1. 世界生成：**独立世界类型 `rewasteland:wasteland`**（像原版的默认/超平坦/放大化一样在世界创建界面选择，服务器用 `level-type=rewasteland:wasteland`）；691 条 multi_noise、13 个改皮群系、2 个自定义群系、10 个作用域内 feature、沙漠缩减、全局压平地形（无高山）。
@@ -39,7 +39,7 @@ git status
 | ModDevGradle | 2.0.148 |
 | Parchment | 2024.11.17 |
 | 构建命令 | `.\gradlew.bat build` |
-| 产物 | `build/libs/rewasteland-2.0.0.jar` |
+| 产物 | `build/libs/rewasteland-1.1.4.jar` |
 | 开发服 | `.\gradlew.bat runServer` |
 | 开发客户端 | `.\gradlew.bat runClient` |
 
@@ -84,7 +84,7 @@ ModFluids.register(modEventBus);   // 酸水：流体类型 / 流体 / 方块 / 
 
 ## 4. 资源与数据布局
 
-`src/main/resources/data/`（2.0.0 起：世界生成全部在 `rewasteland` 命名空间；`data/minecraft/` 只留 tag）：
+`src/main/resources/data/`（1.1.4 起：世界生成全部在 `rewasteland` 命名空间；`data/minecraft/` 只留 tag）：
 
 | 路径 | 内容 |
 |---|---|
@@ -107,9 +107,9 @@ ModFluids.register(modEventBus);   // 酸水：流体类型 / 流体 / 方块 / 
 
 ## 5. 世界生成设计（重点）
 
-### 5.0 独立世界类型（2.0.0 起）
+### 5.0 独立世界类型（1.1.4 起）
 
-以前是直接接管 `minecraft:dimension/overworld` + `minecraft:noise_settings` + 13 个 `minecraft:biome`，等于把原版主世界换掉；2.0.0 起改成**可选世界类型**：
+以前是直接接管 `minecraft:dimension/overworld` + `minecraft:noise_settings` + 13 个 `minecraft:biome`，等于把原版主世界换掉；1.1.4 起改成**可选世界类型**：
 
 - **机制**：世界类型 = `worldgen/world_preset` 注册表条目；创建界面的「世界类型」轮换列表由 tag `#minecraft:world_preset/normal`（`WorldPresetTags.NORMAL`）驱动，tag 是合并语义，所以只往 `data/minecraft/tags/worldgen/world_preset/normal.json` 里追加 `rewasteland:wasteland` 即可，原版的默认/超平坦/放大化仍在。
 - **服务器**：`server.properties` 的 `level-type=rewasteland:wasteland`（`DedicatedServerProperties` 会按 ResourceLocation 查 world preset 注册表，支持自定义 id）；不写就是原版默认世界。已实测两种世界都能正常启动。
@@ -145,7 +145,7 @@ MC 1.18+ 的地形高度来自 `noise_settings.noise_router` + `density_function
 
 ### 5.3 生成脚本与手改文件
 
-- 调世界生成的固定流程（2.0.0 起）：`port_worldgen.js` 仍然生成到 `data/minecraft/...`（当成“源文件”），**必须紧接着跑 `migrate_worldtype.js`**，它会：① 把 dimension/noise_settings/密度函数/群系/feature 全部改写成 `rewasteland:` 命名空间并生成 world preset；② 把 feature 引用收敛成作用域闭包；③ 生成 `has_structure` / `is_overworld` / `world_preset` tag；④ 删掉 `data/minecraft` 下的 worldgen/dimension 临时覆盖。然后 build。
+- 调世界生成的固定流程（1.1.4 起）：`port_worldgen.js` 仍然生成到 `data/minecraft/...`（当成“源文件”），**必须紧接着跑 `migrate_worldtype.js`**，它会：① 把 dimension/noise_settings/密度函数/群系/feature 全部改写成 `rewasteland:` 命名空间并生成 world preset；② 把 feature 引用收敛成作用域闭包；③ 生成 `has_structure` / `is_overworld` / `world_preset` tag；④ 删掉 `data/minecraft` 下的 worldgen/dimension 临时覆盖。然后 build。
 - 只改 `data/rewasteland/...` 里的产物也行，但下次跑 `port_worldgen.js` 会被重新生成覆盖。
 - **`data/rewasteland/worldgen/density_function/overworld/` 下的文件是手写/静态文件**，`port_worldgen.js` 不会重写它们；改完要自己维护，并在 `migrate_worldtype.js` 之后确认引用还是 `rewasteland:overworld/*`。`offset.json` 现在是：大陆度样条 + 低频丘陵项 + `ridges_folded` 河带下切。
 - 脚本里写死了绝对路径：`PACK`（上游克隆）、`OUT`（本项目 resources）。换机器/搬目录后先核对再跑。
@@ -163,7 +163,7 @@ node D:\MC\_port_tools\migrate_worldtype.js
 powershell -NoProfile -ExecutionPolicy Bypass -File D:\MC\_port_tools\test_flat.ps1
 ```
 
-`test_flat.ps1` 会：删 `run/world` → 写 `server.properties`（种子 `rw-flat-3`）→ `gradlew runServer` → RCON `locate biome` + `forceload` → `save-all` / `stop` → `dump_biome_height.js`。**注意它默认写的是 `minecraft:normal`**，2.0.0 起跑之前要把 `level-type` 改成 `rewasteland:wasteland`（或直接用下面的 `test_worldtype.ps1`）。
+`test_flat.ps1` 会：删 `run/world` → 写 `server.properties`（种子 `rw-flat-3`）→ `gradlew runServer` → RCON `locate biome` + `forceload` → `save-all` / `stop` → `dump_biome_height.js`。**注意它默认写的是 `minecraft:normal`**，1.1.4 起跑之前要把 `level-type` 改成 `rewasteland:wasteland`（或直接用下面的 `test_worldtype.ps1`）。
 
 世界类型 + 酸雨作用域验证：
 
@@ -218,7 +218,7 @@ node D:\MC\_port_tools\water_metrics.js D:\MC\rewasteland\rewasteland-template-1
 ## 7. 结构 / 战利品
 
 - 结构 id：`rewasteland:ruin`（4 模板）、`rewasteland:survivor_camp`（5 模板）。
-- 限定标签：`#rewasteland:is_desert` / `#rewasteland:is_wasteland`（指向 2 个自定义群系，2.0.0 起群系 id 不变）。
+- 限定标签：`#rewasteland:is_desert` / `#rewasteland:is_wasteland`（指向 2 个自定义群系，1.1.4 起群系 id 不变）。
 - 群系 id 改名（`minecraft:badlands` → `rewasteland:badlands`）只影响原版结构；自定义结构的 tag 不用改。原版结构的分布靠 `data/minecraft/tags/worldgen/biome/has_structure/*` 补新 id 保持。 
 - 战利品：`StructureLootConfig` 在 `LootTableLoadEvent` 里用 `RegistryOps + LootTable.DIRECT_CODEC` 替换；
   配置目录 `config/rewasteland/structure_looting/`，每张表一个 JSON，`"loot_table"` 声明要接管哪张表；
@@ -275,14 +275,14 @@ node D:\MC\_port_tools\water_metrics.js D:\MC\rewasteland\rewasteland-template-1
 - 新世界类型要两件东西：`data/<ns>/worldgen/world_preset/<name>.json` + 在 `#minecraft:world_preset/normal` tag 里加一行（UI 才看得到）；服务器直接 `level-type=<ns>:<name>`，`DedicatedServerProperties` 按 ResourceLocation 查注册表。`WorldPreset` 的 dimensions 不支持引用别的 dimension 文件，必须内联完整 LevelStem。
 - 数据包 tag 是**合并**语义（不写 `"replace": true` 就追加），所以往 `data/minecraft/tags/...` 只写新增项是安全的，不会顶掉原版值。
 - 群系改成 `rewasteland:` 新 id 后，原版结构的 `has_structure` 标签不会自动认它们（`mineshaft` / `trial_chambers` / `ocean_ruin_*` / `ruined_portal_*`），要把新 id 补进同名 tag，否则原版结构凭空消失。
-- 2.0.0 起 `data/minecraft/` 下**不能**再出现 worldgen/dimension JSON；`port_worldgen.js` 是按老结构生成到那里的，必须紧接 `migrate_worldtype.js` 迁移并删除，别把临时覆盖提交进仓库。
+- 1.1.4 起 `data/minecraft/` 下**不能**再出现 worldgen/dimension JSON；`port_worldgen.js` 是按老结构生成到那里的，必须紧接 `migrate_worldtype.js` 迁移并删除，别把临时覆盖提交进仓库。
 - 旧存档的世界生成参数存在 `level.dat` 里，但其中是注册表**引用**（`minecraft:overworld` noise settings、`minecraft:*` 群系 id）：删掉这些覆盖后，旧存档新生成区块会回落到原版，已生成区块不变。要完整的废土体验请开新世界。
 
 ## 10. Git / CI / 发布
 
 - 分支：`main`；远程 `origin` = `https://github.com/litai1hao-bot/Rewasteland.git`。
-- 当前 main：`2.0.0` 世界类型改造（2026-11-09，`mod_version=2.0.0`）；此前 `1.1.3.6`（de7d3fc，CI #11 success）。
-- 2.0.0 是**破坏性**变更：删除 `data/minecraft` 下的 worldgen/dimension 覆盖、群系改 id、旧存档新区块回原版；发布时要在 Release 说明里写清楚。
+- 当前 main：`1.1.4` 世界类型改造（2026-11-09，`mod_version=1.1.4`）；此前 `1.1.3.6`（de7d3fc，CI #11 success）。
+- 1.1.4 是**破坏性**变更：删除 `data/minecraft` 下的 worldgen/dimension 覆盖、群系改 id、旧存档新区块回原版；发布时要在 Release 说明里写清楚。
 - 提交作者：`litai1hao-bot <350916319+litai1hao-bot@users.noreply.github.com>`。
 - 推送：HTTPS + Git Credential Manager（SSH 22 被代理拦截，不走 SSH）。
 - CI：`.github/workflows/build.yml`，push / PR 触发，ubuntu-latest + JDK 21 + `./gradlew build`。
@@ -300,7 +300,7 @@ node D:\MC\_port_tools\water_metrics.js D:\MC\rewasteland\rewasteland-template-1
 
 酸水后续（1.1.0 遗留）：① runClient 目视确认酸绿贴图/水下雾/遮罩/桶贴图；② 结构水（海底神殿/海底废墟/要塞）是否也转酸水；③ 桶的装/倒交互实测。
 
-2.0.0 后续：① runClient 目视确认「世界类型」列表里出现「废土世界」并可选（tag 机制已按源码核对，UI 未目视）；② 第三方建筑 mod 兼容（影子副本：复制对方 structure JSON 换 id + biomes，模板引用对方命名空间，见记忆/文档）；③ 可以把 `is_wasteland` 标签扩展成包含更多废土群系，让自定义结构在老版改皮群系里也生成。
+1.1.4 后续：① runClient 目视确认「世界类型」列表里出现「废土世界」并可选（tag 机制已按源码核对，UI 未目视）；② 第三方建筑 mod 兼容（影子副本：复制对方 structure JSON 换 id + biomes，模板引用对方命名空间，见记忆/文档）；③ 可以把 `is_wasteland` 标签扩展成包含更多废土群系，让自定义结构在老版改皮群系里也生成。
 
 ## 12. 新会话检查清单
 

@@ -25,12 +25,12 @@
 
 ## 世界类型
 
-2.0.0 起世界生成是**可选**的，不再直接改写原版主世界：
+1.1.4 起世界生成是**可选**的，不再直接改写原版主世界：
 
 - 单人：创建新世界 →「世界类型」里选 **废土世界**（`rewasteland:wasteland`）；选默认/超平坦/放大化就是原版世界。
 - 服务器：`server.properties` 里 `level-type=rewasteland:wasteland`（不写 = `minecraft:normal`）。
 - 酸雨、酸水、废土地形、自定义结构只在废土世界类型里出现；同一个 mod 装着的原版世界保持普通水、普通天气、原版群系。
-- 1.1.x 的旧存档创建时是“默认”世界类型，2.0.0 之后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
+- 1.1.3 及更早的旧存档创建时是“默认”世界类型，升级到 1.1.4 后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
 
 ## 运行要求
 
@@ -41,7 +41,7 @@
 ## 构建
 
 ```bash
-./gradlew build          # 产物：build/libs/rewasteland-2.0.0.jar
+./gradlew build          # 产物：build/libs/rewasteland-1.1.4.jar
 ./gradlew runClient      # 开发客户端
 ./gradlew runServer      # 开发服务端（test world 在 run/）
 ```
