@@ -241,6 +241,7 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 - **坑**：NTM 的 `/locate` 极慢（单次 14–200 秒：它每个候选区块都跑 1.7 谓词 + 25 点地形采样，`wins()` 再遍历全部结构），调试时把 `server.properties` 的 `max-tick-time` 设 `-1`，否则 60 秒看门狗会直接杀服（看起来像崩溃）。正常区块生成不受影响（400 chunk 约 25 秒）。
 - `meteor_dungeon` 的谓词是 `rootHeight >= 0`，废土地表平均 y≈63 → 基本不会生成；`hbm:silo` 在 release 1.0.4 里没有注册。这两条属于 NTM 自身/版本差异，不是兼容包的问题。
 - **性能坑（重要）**：NTM 对非原版群系没有查表，`wins()` 里每个匹配结构都要用 5×5 地形采样反推高度。实测出生区生成：无 NTM 3.5s；NTM 默认 spacing 16 → **121s**；spacing 32 → 3.8s；spacing 48 → 3.7s；`5.00_enableStructures=false` → 3.9s。用户 2026-11-09 选定 **32/8**（`hbm.cfg` 的 `5.02_structureMaxChunks=32`、`5.01_structureMinChunks=8`），`run/config/hbm.cfg` 已按此设置。开销只发生在“候选区块”（spacing 16 时每 256 区块一次，单次约 1 分钟），所以默认配置下探索时会周期性卡顿。
+- **NTM 的 climate 类地牢**（Ancient Tomb / Desert Atom / Barrel / Arctic Vault / Jungle Dungeon / Military Base）走 1.7 气候规则而不是群系标签：`ancient_tomb` 要 `temperature>=2.0 && !lightning`、`desert_atom`/`barrel` 要 `temperature>=1.5 && !lightning`。`rewasteland:desert` 原来 `temperature=1.0, has_precipitation=true`，三条永远不满足；2026-11-09 已把沙漠群系对齐原版（`temperature=2.0`、`has_precipitation=false`、`downfall=0`），实测 ancient_tomb/desert_atom/barrel 都能 locate 到并完整生成。Arctic Vault（temp<0.2）、Jungle Dungeon、Military Base（雪地）仍需雪地/丛林群系——本模组世界没有，属于世界设计取舍。
 
 ## 8. 测试工具（D:\MC\_port_tools）
 
