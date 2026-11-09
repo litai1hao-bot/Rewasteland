@@ -26,16 +26,16 @@
 
 ## 世界类型
 
-1.1.5 起世界生成是**可选**的，不再直接改写原版主世界：
+1.2.0 起世界生成是**可选**的，不再直接改写原版主世界：
 
 - 单人：创建新世界 →「世界类型」里选 **废土世界**（`rewasteland:wasteland`）；选默认/超平坦/放大化就是原版世界。
 - 服务器：`server.properties` 里 `level-type=rewasteland:wasteland`（不写 = `minecraft:normal`）。
 - 酸雨、酸水、废土地形、自定义结构只在废土世界类型里出现；同一个 mod 装着的原版世界保持普通水、普通天气、原版群系。
-- 1.1.3 及更早的旧存档创建时是“默认”世界类型，升级到 1.1.5 后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
+- 1.1.3 及更早的旧存档创建时是“默认”世界类型，升级到 1.2.0 后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
 
 ## 第三方模组兼容
 
-- **NTM-Continuum（HBM）**：1.1.5 起自带兼容标签（`data/hbm/tags/worldgen/biome/biome_dictionary/*`），废土世界里的沙漠、海洋、河岸、平原类 NTM 结构会正常生成；NTM 不在时这些标签不产生任何影响。
+- **NTM-Continuum（HBM）**：1.2.0 起自带兼容标签（`data/hbm/tags/worldgen/biome/biome_dictionary/*`），废土世界里的沙漠、海洋、河岸、平原类 NTM 结构会正常生成；NTM 不在时这些标签不产生任何影响。
 - 需要 `hbm` 和 `golemcore` 两个 1.21.1 NeoForge jar；NTM 的 `/locate` 很慢（单次数十秒到数分钟）属于它自身实现，和本模组无关。
 - **性能提示**：NTM 在非原版群系上生成结构很重（默认配置下出生区生成从 3.5 秒涨到 121 秒）。建议把 `config/hbm.cfg` 的 `5.02_structureMaxChunks` 调到 32、`5.01_structureMinChunks` 调到 8；实测可回到 ~3.8 秒，代价是 NTM 结构更稀。
 
@@ -48,7 +48,7 @@
 ## 构建
 
 ```bash
-./gradlew build          # 产物：build/libs/rewasteland-1.1.5.jar
+./gradlew build          # 产物：build/libs/rewasteland-1.2.0.jar
 ./gradlew runClient      # 开发客户端
 ./gradlew runServer      # 开发服务端（test world 在 run/）
 ```
