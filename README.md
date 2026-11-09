@@ -12,15 +12,25 @@
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
+| 世界类型 | ✅ | 独立世界类型 **`rewasteland:wasteland`**：创建世界时像原版默认/超平坦/放大化一样选择，服务器用 `level-type=rewasteland:wasteland`；不选就是原版世界 |
 | 世界生成 | ✅ | 自定义 overworld 气候表（18 群系）、适度起伏地形（6 格下移，低地多水、无高山）、沙漠缩减、地表换土、全树枯枝、窄深河流；洞穴保持原版，建议另装 NoCaves |
 | 结构 | ✅ | 荒屋 ×4、幸存者营地 ×5，按群系标签生成 |
 | 结构战利品 | ✅ | 外置到 `config/rewasteland/structure_looting/`，可逐表改 JSON |
-| 酸水方块 | ✅ | 所有自然水换成 `rewasteland:acid_water`；流体/方块/桶，绿色外观；普通水安全 |
-| 酸雨中毒 | ✅ | 酸水 / 露天降雨累积暴露值；200/600/1000 每秒刷新 5 秒中毒 0/I/II，1200 上限额外凋零；参数在 `config/rewasteland/acid_rain.json` |
+| 酸水方块 | ✅ | 废土世界里自然水换成 `rewasteland:acid_water`；流体/方块/桶，绿色外观；普通水安全 |
+| 酸雨中毒 | ✅ | 只在废土世界：酸水 / 露天降雨累积暴露值；200/600/1000 每秒刷新 5 秒中毒 0/I/II，1200 上限额外凋零；参数在 `config/rewasteland/acid_rain.json` |
 | 变异（吃食物触发） | 🚧 | 计划中 |
 | 怪物变种与装备 | 🚧 | 计划中 |
 | 自定义天气机 | 🚧 | 计划中 |
 | 食物/物品改皮 | 🚧 | 计划中 |
+
+## 世界类型
+
+2.0.0 起世界生成是**可选**的，不再直接改写原版主世界：
+
+- 单人：创建新世界 →「世界类型」里选 **废土世界**（`rewasteland:wasteland`）；选默认/超平坦/放大化就是原版世界。
+- 服务器：`server.properties` 里 `level-type=rewasteland:wasteland`（不写 = `minecraft:normal`）。
+- 酸雨、酸水、废土地形、自定义结构只在废土世界类型里出现；同一个 mod 装着的原版世界保持普通水、普通天气、原版群系。
+- 1.1.x 的旧存档创建时是“默认”世界类型，2.0.0 之后新生成的区块会回到原版外观（已生成区块不变）；要完整体验请开新世界。
 
 ## 运行要求
 
@@ -31,7 +41,7 @@
 ## 构建
 
 ```bash
-./gradlew build          # 产物：build/libs/rewasteland-1.1.0.jar
+./gradlew build          # 产物：build/libs/rewasteland-2.0.0.jar
 ./gradlew runClient      # 开发客户端
 ./gradlew runServer      # 开发服务端（test world 在 run/）
 ```
@@ -61,6 +71,7 @@ config/rewasteland/structure_looting/
 
 ## 酸雨 / 水中毒
 
+**只在废土世界类型生效**（原版/超平坦/放大化世界完全不受影响）。
 首次启动会生成 `config/rewasteland/acid_rain.json`（同目录带 `README-acid-rain.txt`）：
 
 - 在酸水中（脚或头所在方块）或露天降雨 / 雷雨时，每 tick 累积 1 点暴露值；
@@ -83,8 +94,8 @@ config/rewasteland/structure_looting/
 
 ## 目录约定
 
-- 所有自定义内容统一使用 **`rewasteland`** 命名空间（群系、战利品表、结构、配置目录）。
-- 覆盖原版的部分放在 `src/main/resources/data/minecraft/...`。
+- 所有自定义内容统一使用 **`rewasteland`** 命名空间（群系、世界类型、战利品表、结构、配置目录）。
+- 世界生成（维度/噪声/密度函数/群系/feature）全部在 `data/rewasteland/...`；`data/minecraft/` 只放 tag（世界类型列表、结构群系标签、`is_overworld` 兼容标签）。
 
 ## 许可
 

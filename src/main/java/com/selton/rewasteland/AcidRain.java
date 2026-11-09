@@ -39,7 +39,8 @@ import org.slf4j.Logger;
 /**
  * Acid rain / acid water.
  *
- * <p>Every tick a server player in the overworld is checked for exposure:
+ * <p>Every tick a server player in the overworld of a {@code rewasteland:wasteland} world is
+ * checked for exposure:
  * <ul>
  *   <li>standing in acid water (feet or head block), unless riding a vehicle;</li>
  *   <li>standing under the open sky while it rains or thunders.</li>
@@ -94,7 +95,8 @@ public final class AcidRain {
             File: config/rewasteland/acid_rain.json
             Re-read every time the world starts.
 
-            Every tick, for each non-creative player in the overworld:
+            Every tick, for each non-creative player in the overworld of a world created with the
+            ReWasteland world type (world preset "rewasteland:wasteland"):
               - in acid water (feet or head), or
               - under open sky while raining / thundering
               -> exposure += exposure_gain_per_tick
@@ -227,6 +229,10 @@ public final class AcidRain {
      */
     static void tick(ServerLevel level, ServerPlayer player, Boolean forcedExposed) {
         if (!settings.enabled() || player.isSpectator()) {
+            return;
+        }
+        // Acid rain and acid water only exist in worlds generated with the ReWasteland world type.
+        if (!WastelandWorld.isWasteland(level)) {
             return;
         }
         if (!settings.affectCreative() && player.isCreative()) {

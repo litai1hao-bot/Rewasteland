@@ -15,5 +15,6 @@
   "rewasteland.configuration.magicNumber": "Magic Number",
   "block.rewasteland.acid_water": "Acid Water",
   "item.rewasteland.acid_water_bucket": "Acid Water Bucket",
-  "fluid_type.rewasteland.acid_water": "Acid Water"
+  "fluid_type.rewasteland.acid_water": "Acid Water",
+  "generator.rewasteland.wasteland": "Wasteland"
 }

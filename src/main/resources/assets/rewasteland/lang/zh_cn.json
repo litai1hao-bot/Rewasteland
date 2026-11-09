@@ -15,5 +15,6 @@
   "rewasteland.configuration.magicNumber": "魔法数字",
   "block.rewasteland.acid_water": "酸水",
   "item.rewasteland.acid_water_bucket": "酸水桶",
-  "fluid_type.rewasteland.acid_water": "酸水"
+  "fluid_type.rewasteland.acid_water": "酸水",
+  "generator.rewasteland.wasteland": "废土世界"
 }

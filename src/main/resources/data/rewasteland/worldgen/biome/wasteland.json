@@ -75,12 +75,12 @@
     ],
     [],
     [
-      "minecraft:spring_water",
+      "rewasteland:spring_water",
       "minecraft:spring_lava"
     ],
     [
       "minecraft:glow_lichen",
-      "minecraft:trees_plains",
+      "rewasteland:trees_plains",
       "rewasteland:patch_grass_wasteland",
       "minecraft:brown_mushroom_normal",
       "minecraft:red_mushroom_normal",

@@ -42,3 +42,9 @@ repo/
 ### Local tooling / agent data (never commit) ###
 .dsh-meow/
 *.log
+
+### Transient worldgen sources before migration (see DEVELOPMENT.md 5.3) ###
+# port_worldgen.js writes these; migrate_worldtype.js moves them to data/rewasteland
+# and deletes them. Never commit them: they would take over the vanilla overworld.
+src/main/resources/data/minecraft/dimension/
+src/main/resources/data/minecraft/worldgen/
