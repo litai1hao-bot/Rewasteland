@@ -103,6 +103,13 @@ public class ReWasteland {
         NeoForge.EVENT_BUS.addListener(AcidRain::onServerStarted);
         NeoForge.EVENT_BUS.addListener(AcidRain::registerCommands);
 
+        // Weather cycle: vanilla weather is disabled in wasteland worlds and driven by a
+        // state machine (clear -> rain -> thunder -> rain -> clear) with random durations.
+        WastelandWeather.ensureDefaults();
+        NeoForge.EVENT_BUS.addListener(WastelandWeather::onServerStarted);
+        NeoForge.EVENT_BUS.addListener(WastelandWeather::onServerTick);
+        NeoForge.EVENT_BUS.addListener(WastelandWeather::registerCommands);
+
 
 
 

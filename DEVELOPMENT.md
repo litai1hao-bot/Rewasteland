@@ -8,17 +8,17 @@
 ```powershell
 cd D:\MC\rewasteland\rewasteland-template-1.21.1
 git status
-.\gradlew.bat build                 # 产物 build/libs/rewasteland-1.2.0.jar
+.\gradlew.bat build                 # 产物 build/libs/rewasteland-1.3.0.jar
 ```
 
 - 本地项目目录：`D:\MC\rewasteland\rewasteland-template-1.21.1`（**2026-11-08 从 `D:\MC\rewasteland-template-1.21.1` 搬过来**，旧脚本里可能有旧路径）。
 - 上游参考仓库（1.21.4 数据包）：`D:\MC\rewasteland\example_mod\wasteland-datapack`。
 - 参考数据 / 工具：`D:\MC\_vanilla_1211`、`D:\MC\_vanilla_1214`、`D:\MC\_vanilla_1211_df`、`D:\MC\_port_tools`。
-- 当前状态：世界生成（1.2.0 起是独立世界类型 `rewasteland:wasteland`）+ 结构 + 结构战利品 + 酸雨 + 酸水方块，版本 1.2.0。
+- 当前状态：世界生成（1.2.0 起是独立世界类型 `rewasteland:wasteland`）+ 结构 + 结构战利品 + 酸雨 + 酸水方块 + 天气机，版本 1.3.0。
 
 ## 1. 项目速览
 
-- **MC 1.21.1 / NeoForge 21.1.265** 的废土生存模组，mod id `rewasteland`，包名 `com.selton.rewasteland`，版本 `1.2.0`。
+- **MC 1.21.1 / NeoForge 21.1.265** 的废土生存模组，mod id `rewasteland`，包名 `com.selton.rewasteland`，版本 `1.3.0`。
 - 原型是 Modrinth 上的 **Acid Wasteland**（纯 1.21.4 数据包，MIT）：本仓库是它的 1.21.1 / NeoForge 移植 + 扩展，世界生成不是原样搬运，而是重新生成 / 降级改写。
 - 已完成模块：
   1. 世界生成：**独立世界类型 `rewasteland:wasteland`**（像原版的默认/超平坦/放大化一样在世界创建界面选择，服务器用 `level-type=rewasteland:wasteland`）；691 条 multi_noise、13 个改皮群系、2 个自定义群系、10 个作用域内 feature、沙漠缩减、全局压平地形（无高山）。
@@ -27,7 +27,7 @@ git status
   4. 酸雨 / 水中毒：暴露值 + 3 级中毒（每秒刷新 5 秒，1200 上限额外凋零），参数外置到 `config/rewasteland/acid_rain.json`；**只在废土世界类型生效**。
   5. 酸水方块：自然生成的水全部换成 `rewasteland:acid_water`（只限废土世界）；水的毒性只作用于酸水（普通水安全）；独立 FluidType + 流体方块 + 桶，客户端酸绿贴图/雾/水下遮罩。
   6. GitHub 开源：MIT、CI、README。
-- 还没做：自定义天气机、撬棍贴图/模型。
+- 还没做：撬棍贴图/模型。
 
 ## 2. 环境与构建
 
@@ -39,7 +39,7 @@ git status
 | ModDevGradle | 2.0.148 |
 | Parchment | 2024.11.17 |
 | 构建命令 | `.\gradlew.bat build` |
-| 产物 | `build/libs/rewasteland-1.2.0.jar` |
+| 产物 | `build/libs/rewasteland-1.3.0.jar` |
 | 开发服 | `.\gradlew.bat runServer` |
 | 开发客户端 | `.\gradlew.bat runClient` |
 
@@ -208,13 +208,24 @@ node D:\MC\_port_tools\water_metrics.js D:\MC\rewasteland\rewasteland-template-1
 - 判定：脚或头所在方块是**酸水**（`#rewasteland:acid_water`，骑乘时不判）；或主世界露天 + 下雨/雷雨。普通水默认安全。
 - 数值：暴露 `+1/tick`，干燥 `-1/tick`，上限 1200；`200/600/1000` → 每秒刷新一次、持续 5 秒的中毒 0/I/II，III 级额外绿色 `dust_color_transition` 粒子；到 1200 上限额外每秒刷新 5 秒凋零 0（会致死）；离开酸水后效果最多残留 5 秒；升级 `witch.drink`、降级 `fish.swim`。
 - 状态存在玩家 `persistent data`（`rw_acid_exposure` / `rw_acid_level` / `rw_acid_poison`），死亡保留；创造模式默认不受影响。
+- 环境判定有缓存：`AcidRain.exposedCached()` 每 10 tick 才做一次流体/露天检测（`ENV_CHECK_INTERVAL`），暴露值仍每 tick ±1，速率不变。
 - 配置：`config/rewasteland/acid_rain.json`（首次启动生成，附 `README-acid-rain.txt`，世界启动时重读）。
 - 配置字段：`enabled` / `acid_water_toxic` / `plain_water_toxic` / `rain_is_acidic` / `affect_creative_players` / `exposure_gain_per_tick` / `exposure_loss_per_tick` / `max_exposure` / `tier1..3_threshold`。旧配置的 `water_is_acidic` 仍会作为 `acid_water_toxic` 读取。
 - 调试命令（op）：
   - `/rwacid <ticks> <true|false>`：在假人身上强制暴露/干燥跑 N tick；
   - `/rwacid auto <ticks>`：按假人所在位置真实判定酸水/雨/遮挡；
   - `/rwacid reset`：清空假人状态。
-- 目前只认原版天气；自定义天气机是后续独立系统。
+
+### 6.1 天气机（1.3.0）
+
+- 实现：`WastelandWeather.java`（事件/配置/命令）、`WeatherCycleLogic.java`（纯状态机）、`WeatherCycleData.java`（SavedData：状态 + 绝对 `nextTransitionGameTime`）。
+- 启动：`ServerStartedEvent` 里若 overworld 是 `rewasteland:wasteland` → `doWeatherCycle=false`（配置 `enabled=false` 时恢复 true）；首次用 `WeatherCycleLogic.start` 初始化，否则把当前天气同步成保存的状态。
+- 每 tick：`ServerTickEvent.Post` 里只比较 `nextTransitionGameTime`（绝对 `level.getGameTime()`，跨重启不漂移），到点才 `advance` 并 `setWeatherParameters(0,0,raining,thundering)`。
+- **不要用 `TickTask` 做延迟**：1.21.1 的 `MinecraftServer.shouldRun(TickTask)` 是 `tick+3 < now || haveTime()`，未来 tick 的 task 在服务器有空时就会执行，不是延迟调度器。
+- 循环：晴 → 90% 雨 / 10% 雷暴前奏 → 雷暴 → 小雨 → 晴；时长 `clear 6000..9600` / `rain 6000..24000` / `prepare 3600..6000` / `thunder 6000..12000` / `thunder_end 3600..6000` tick。
+- 配置：`config/rewasteland/weather_cycle.json` + `README-weather-cycle.txt`（首次启动生成，世界启动重读）。
+- 调试：`/rwweather` 查看状态与剩余时间；`/rwweather clear|rain|thunder` 强制切换；`/rwweather set <state> <seconds>`。
+- 与酸雨联动：`AcidRain.isExposed()` 读 `level.isRaining()/isThundering()`，天气机控制天气后酸雨自动跟随。
 
 ## 7. 结构 / 战利品
 
@@ -300,7 +311,7 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 ## 10. Git / CI / 发布
 
 - 分支：`main`；远程 `origin` = `https://github.com/litai1hao-bot/Rewasteland.git`。
-- 当前 main：`1.2.0` 世界类型改造（2026-11-09，`mod_version=1.2.0`）；此前 `1.1.3.6`（de7d3fc，CI #11 success）。
+- 当前 main：`1.3.0`（天气机 + AcidRain 环境缓存，2026-11-10）；此前 `1.2.0`（世界类型改造/兼容内置，2026-11-09）与 `1.1.3.6`（de7d3fc，CI #11 success）。
 - 1.2.0 是**破坏性**变更：删除 `data/minecraft` 下的 worldgen/dimension 覆盖、群系改 id、旧存档新区块回原版；发布时要在 Release 说明里写清楚。
 - 提交作者：`litai1hao-bot <350916319+litai1hao-bot@users.noreply.github.com>`。
 - 推送：HTTPS + Git Credential Manager（SSH 22 被代理拦截，不走 SSH）。
@@ -310,8 +321,7 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 
 ## 11. 下一步建议
 
-1. **自定义天气机**：`doWeatherCycle=false` + 状态机，让酸雨有节奏。
-2. **撬棍贴图 / 模型**：1.21.1 用 `custom_model_data` + 模型 override 替代 `item_model`。
+1. **撬棍贴图 / 模型**：1.21.1 用 `custom_model_data` + 模型 override 替代 `item_model`。
 
 酸水后续（1.1.0 遗留）：① runClient 目视确认酸绿贴图/水下雾/遮罩/桶贴图；② 结构水（海底神殿/海底废墟/要塞）是否也转酸水；③ 桶的装/倒交互实测。
 

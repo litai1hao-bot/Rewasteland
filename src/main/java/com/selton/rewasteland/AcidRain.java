@@ -61,10 +61,19 @@ public final class AcidRain {
     private static final String TAG_EXPOSURE = "rw_acid_exposure";
     private static final String TAG_LEVEL = "rw_acid_level";
     private static final String TAG_EFFECT_TIMER = "rw_acid_effect_timer";
+    private static final String TAG_ENV_EXPOSED = "rw_acid_env_exposed";
+    private static final String TAG_ENV_NEXT = "rw_acid_env_next";
 
     /** Poison/wither are granted once per second and last 5 seconds. */
     private static final int EFFECT_REFRESH_TICKS = 20;
     private static final int EFFECT_DURATION_TICKS = 100;
+
+    /**
+     * The environment (fluid/sky/rain) is re-evaluated at most once per this many ticks. The
+     * exposure meter itself still steps every tick, so rates are unchanged; only the block/sky
+     * lookups are throttled.
+     */
+    private static final int ENV_CHECK_INTERVAL = 10;
 
     private static final String CONFIG_NAME = "acid_rain.json";
 
@@ -238,7 +247,7 @@ public final class AcidRain {
         if (!settings.affectCreative() && player.isCreative()) {
             return;
         }
-        boolean exposed = forcedExposed != null ? forcedExposed : isExposed(level, player);
+        boolean exposed = forcedExposed != null ? forcedExposed : exposedCached(level, player);
         CompoundTag data = player.getPersistentData();
         AcidRainLogic.State next = AcidRainLogic.advance(
                 new AcidRainLogic.State(data.getInt(TAG_EXPOSURE), data.getInt(TAG_LEVEL)),
@@ -274,6 +283,25 @@ public final class AcidRain {
             return level.canSeeSky(pos.above());
         }
         return false;
+    }
+
+    /**
+     * Cached environment check: the fluid/sky/rain lookups are the expensive part of the tick,
+     * so they run once per {@link #ENV_CHECK_INTERVAL} ticks per player. The exposure meter itself
+     * still advances every tick, so the gained/lost rates stay identical.
+     */
+    private static boolean exposedCached(ServerLevel level, ServerPlayer player) {
+        CompoundTag data = player.getPersistentData();
+        int now = level.getServer().getTickCount();
+        int next = data.getInt(TAG_ENV_NEXT);
+        // A stale "next" (server restart resets the tick counter) is treated as expired.
+        if (next > now && next - now <= ENV_CHECK_INTERVAL) {
+            return data.getBoolean(TAG_ENV_EXPOSED);
+        }
+        boolean exposed = isExposed(level, player);
+        data.putBoolean(TAG_ENV_EXPOSED, exposed);
+        data.putInt(TAG_ENV_NEXT, now + ENV_CHECK_INTERVAL);
+        return exposed;
     }
 
     /** True when the feet or head block contains a fluid in the given tag. */

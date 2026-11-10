@@ -13,6 +13,7 @@
 - **可选世界类型** `rewasteland:wasteland`：创建世界时像原版的默认/超平坦/放大化一样选择；不选就是原版世界。
 - **废土地形**：18 个群系、整体压平无高山、枯树、窄深河流、缩减沙漠；洞穴保持原版（建议另装 NoCaves）。
 - **酸水与酸雨**：自然水全部替换为 `rewasteland:acid_water`；露天淋雨或泡酸水会累积暴露值，按档位中毒/凋零；普通水安全。
+- **天气机**：废土世界里关掉原版随机天气，按「晴 → 雨 →（10% 雷暴）→ 小雨 → 晴」循环，时长随机；配置在 `config/rewasteland/weather_cycle.json`，`/rwweather` 调试。
 - **结构**：荒屋 ×4、幸存者营地 ×5；战利品外置到 `config/rewasteland/structure_looting/`，可逐表改 JSON。
 - **第三方结构兼容**：NTM-Continuum、TNew Apocalypse Structure、The Lost City，内置并按源模组版本自动选择兼容包。
 
@@ -44,7 +45,6 @@
 
 ## 未来计划
 
-- 自定义天气机（酸雨节奏）。
 - 撬棍贴图 / 模型。
 
 ## 运行要求
@@ -56,7 +56,7 @@
 ## 构建
 
 ```bash
-./gradlew build      # 产物：build/libs/rewasteland-1.2.0.jar
+./gradlew build      # 产物：build/libs/rewasteland-1.3.0.jar
 ```
 
 ## 目录约定
