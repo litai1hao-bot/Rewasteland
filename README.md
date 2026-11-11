@@ -56,7 +56,7 @@
 ## 构建
 
 ```bash
-./gradlew build      # 产物：build/libs/rewasteland-1.3.0.jar
+./gradlew build      # 产物：build/libs/rewasteland-1.3.1.jar
 ```
 
 ## 目录约定

@@ -8,17 +8,17 @@
 ```powershell
 cd D:\MC\rewasteland\rewasteland-template-1.21.1
 git status
-.\gradlew.bat build                 # 产物 build/libs/rewasteland-1.3.0.jar
+.\gradlew.bat build                 # 产物 build/libs/rewasteland-1.3.1.jar
 ```
 
 - 本地项目目录：`D:\MC\rewasteland\rewasteland-template-1.21.1`（**2026-11-08 从 `D:\MC\rewasteland-template-1.21.1` 搬过来**，旧脚本里可能有旧路径）。
 - 上游参考仓库（1.21.4 数据包）：`D:\MC\rewasteland\example_mod\wasteland-datapack`。
 - 参考数据 / 工具：`D:\MC\_vanilla_1211`、`D:\MC\_vanilla_1214`、`D:\MC\_vanilla_1211_df`、`D:\MC\_port_tools`。
-- 当前状态：世界生成（1.2.0 起是独立世界类型 `rewasteland:wasteland`）+ 结构 + 结构战利品 + 酸雨 + 酸水方块 + 天气机，版本 1.3.0。
+- 当前状态：世界生成（1.2.0 起是独立世界类型 `rewasteland:wasteland`）+ 结构 + 结构战利品 + 酸雨 + 酸水方块 + 天气机，版本 1.3.1。
 
 ## 1. 项目速览
 
-- **MC 1.21.1 / NeoForge 21.1.265** 的废土生存模组，mod id `rewasteland`，包名 `com.selton.rewasteland`，版本 `1.3.0`。
+- **MC 1.21.1 / NeoForge 21.1.265** 的废土生存模组，mod id `rewasteland`，包名 `com.selton.rewasteland`，版本 `1.3.1`。
 - 原型是 Modrinth 上的 **Acid Wasteland**（纯 1.21.4 数据包，MIT）：本仓库是它的 1.21.1 / NeoForge 移植 + 扩展，世界生成不是原样搬运，而是重新生成 / 降级改写。
 - 已完成模块：
   1. 世界生成：**独立世界类型 `rewasteland:wasteland`**（像原版的默认/超平坦/放大化一样在世界创建界面选择，服务器用 `level-type=rewasteland:wasteland`）；691 条 multi_noise、13 个改皮群系、2 个自定义群系、10 个作用域内 feature、沙漠缩减、全局压平地形（无高山）。
@@ -39,7 +39,7 @@ git status
 | ModDevGradle | 2.0.148 |
 | Parchment | 2024.11.17 |
 | 构建命令 | `.\gradlew.bat build` |
-| 产物 | `build/libs/rewasteland-1.3.0.jar` |
+| 产物 | `build/libs/rewasteland-1.3.1.jar` |
 | 开发服 | `.\gradlew.bat runServer` |
 | 开发客户端 | `.\gradlew.bat runClient` |
 
@@ -91,7 +91,7 @@ ModFluids.register(modEventBus);   // 酸水：流体类型 / 流体 / 方块 / 
 | `rewasteland/worldgen/world_preset/wasteland.json` | **世界类型** `rewasteland:wasteland`：主世界内联 691 条 multi_noise + `rewasteland:wasteland` noise settings；下界/末地照抄 `minecraft:normal` |
 | `minecraft/tags/worldgen/world_preset/normal.json` | 把 `rewasteland:wasteland` 挂进创建界面的「世界类型」轮换列表（tag 合并，不顶掉原版） |
 | `rewasteland/worldgen/noise_settings/wasteland.json` | 地表规则 + 地形上限 + `default_fluid = rewasteland:acid_water` |
-| `rewasteland/worldgen/density_function/overworld/*.json` | 地形压平：`offset` / `factor` / `jaggedness` / `sloped_cheese` |
+| `rewasteland/worldgen/density_function/overworld/*.json` | 地形压平：`offset` / `depth` / `factor` / `jaggedness` / `sloped_cheese`（`depth` 把自定义 `offset` 接进密度链） |
 | `rewasteland/worldgen/biome/*.json` | 世界里的群系：13 个改皮（`badlands`…`wooded_badlands`）+ 2 个洞穴群系（`dripstone_caves` / `lush_caves`）+ 2 个自定义（`wasteland` / `desert`） |
 | `rewasteland/worldgen/configured_feature/*.json` | 10 个作用域内 feature：枯树链（`oak` / `oak_bees_005` / `fancy_oak_bees_005` / `trees_plains`）、`spring_water`（酸水）、`dripstone_cluster`、`clay_pool_with_dripleaves`、杜鹃树链 |
 | `rewasteland/worldgen/placed_feature/*.json` | 上面这些 feature 的 placed 版本 + `patch_grass_wasteland` |
@@ -138,17 +138,23 @@ MC 1.18+ 的地形高度来自 `noise_settings.noise_router` + `density_function
 | 地形高度 | 自定义 `offset.json`：大陆度样条（深海 ≈ y23、海岸 ≈ y64、内陆 ≈ y68~73）整体再降 0.06（约 6 格），加低频丘陵项（`ridge` 噪声 `xz_scale 0.4`，振幅 0.12）+ `ridges_folded` 河带下切（约 -0.06） |
 | 河流频率 | `dimension` 里 10 条 `minecraft:river` 参数的 weirdness 带从 ±0.05 放宽到 ±0.1；河道只沿 river 带下切，不再使用高频水道网（它会在荒原上留下大量干坑） |
 | 起伏 | `factor.json = 8.0`；`jaggedness.json = 0`；`sloped_cheese.json` 里 `base_3d_noise × 0.5` |
-| 上限 | `noise_settings` 的 `final_density` / `initial_density_without_jaggedness` 外包 `min(y_clamped_gradient 90→100)`，最高约 95 |
+| 上限 | `noise_settings` 的 `final_density` / `initial_density_without_jaggedness` 外包 `min(y_clamped_gradient 90→100)`，最高约 95；1.3.1 起 offset 接回后自然地表最高约 y88，cap 只作保险 |
 | 岩洞 | 回退为原版：18 群系 carvers 恢复、`caves/entrances` 恢复；模组内不再做洞穴删除，用户后续自行安装 NoCaves |
 | 原版水颜色 | 15 个群系的 `effects.water_color` / `water_fog_color` 重置为原版蓝（4159204 / 329011），否则原版水会被群系染成绿/青色 |
 
 实测（种子 `rw-river-1`，432 个 full chunk）：wasteland 平均 y62.9、p95 y68、最高 y78；river 平均 y62.3、最高 y69；没有任何一格到 100。因为降了 6 格，低地大面积被淹：248 个区块有水面酸水（约 57%），水面宽 p50=13、平均 10.9 格；水深 p50=2、平均 4.5；`minecraft:water` 0。洞穴保持原版。
 
+### 5.2.1 1.3.1 修复：offset 重新接线
+
+2.0.0 把密度函数搬进 `rewasteland:` 时漏了 `depth`：`sloped_cheese`、`initial_density_without_jaggedness` 和 `noise_router.depth` 仍指向 `minecraft:overworld/depth`（= 原版 offset），`rewasteland:overworld/offset` 成了孤儿 → 地形回落到原版 offset。原版丘陵/山地的自然地表高于 95，被 5.2 的 cap 削成整片 y≈95 的平顶（2026-11-11 用户实测：灰色石台 + calcite 白线）。
+
+修复：新增 `rewasteland:overworld/depth.json`（原版 depth 拷贝，`argument2` 指向 `rewasteland:overworld/offset`），把上述三处引用改到 `rewasteland:overworld/depth`；`migrate_worldtype.js` 的 `dfMap` 增加 depth，并在迁移时从原版 jar 生成 `depth.json`。已生成区块不变，需开新世界验证：地表最高回到 ~y88 以下、不再有 95 平台，酸水/河道/低地淹没回归（用 `height_probe.js` 看 max 与 ≥95 列数）。
+
 ### 5.3 生成脚本与手改文件
 
 - 调世界生成的固定流程（1.2.0 起）：`port_worldgen.js` 仍然生成到 `data/minecraft/...`（当成“源文件”），**必须紧接着跑 `migrate_worldtype.js`**，它会：① 把 dimension/noise_settings/密度函数/群系/feature 全部改写成 `rewasteland:` 命名空间并生成 world preset；② 把 feature 引用收敛成作用域闭包；③ 生成 `has_structure` / `is_overworld` / `world_preset` tag；④ 删掉 `data/minecraft` 下的 worldgen/dimension 临时覆盖。然后 build。
 - 只改 `data/rewasteland/...` 里的产物也行，但下次跑 `port_worldgen.js` 会被重新生成覆盖。
-- **`data/rewasteland/worldgen/density_function/overworld/` 下的文件是手写/静态文件**，`port_worldgen.js` 不会重写它们；改完要自己维护，并在 `migrate_worldtype.js` 之后确认引用还是 `rewasteland:overworld/*`。`offset.json` 现在是：大陆度样条 + 低频丘陵项 + `ridges_folded` 河带下切。
+- **`data/rewasteland/worldgen/density_function/overworld/` 下的文件是手写/静态文件**，`port_worldgen.js` 不会重写它们；改完要自己维护，并在 `migrate_worldtype.js` 之后确认引用还是 `rewasteland:overworld/*`。`offset.json` 现在是：大陆度样条 + 低频丘陵项 + `ridges_folded` 河带下切；`depth.json` 是原版 depth 的拷贝，只把 `argument2` 指向 `rewasteland:overworld/offset`。**引用闭包必须三处一致**：`noise_router.depth`、`initial_density_without_jaggedness`、`sloped_cheese` 都指向 `rewasteland:overworld/depth`（1.3.1 前的断链坑见 5.2.1）。
 - 脚本里写死了绝对路径：`PACK`（上游克隆）、`OUT`（本项目 resources）。换机器/搬目录后先核对再跑。
 - 调参常量在 `port_worldgen.js` 顶部：`C_MOUNT / E_STONY / E_JAGGED / T_DESERT / H_DESERT`；地形 cap 在脚本第 2 段（`from_y: 90 / to_y: 100`）。
 
@@ -307,11 +313,12 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 - 群系改成 `rewasteland:` 新 id 后，原版结构的 `has_structure` 标签不会自动认它们（`mineshaft` / `trial_chambers` / `ocean_ruin_*` / `ruined_portal_*`），要把新 id 补进同名 tag，否则原版结构凭空消失。
 - 1.2.0 起 `data/minecraft/` 下**不能**再出现 worldgen/dimension JSON；`port_worldgen.js` 是按老结构生成到那里的，必须紧接 `migrate_worldtype.js` 迁移并删除，别把临时覆盖提交进仓库。
 - 旧存档的世界生成参数存在 `level.dat` 里，但其中是注册表**引用**（`minecraft:overworld` noise settings、`minecraft:*` 群系 id）：删掉这些覆盖后，旧存档新生成区块会回落到原版，已生成区块不变。要完整的废土体验请开新世界。
+- **数据包命名空间迁移要扫引用闭包**：2.0.0 把 density function 搬到 `rewasteland:` 时漏了 `depth`，`minecraft:overworld/depth` 仍被引用、自定义 `offset` 变孤儿，地形悄悄回到原版 offset；表现是 y≈95 平顶（cap 生效）。迁移后把所有 `<ns>:<path>` 字符串与实际文件对一遍（`migrate_worldtype.js` 的 `dfMap` 现在含 depth）。
 
 ## 10. Git / CI / 发布
 
 - 分支：`main`；远程 `origin` = `https://github.com/litai1hao-bot/Rewasteland.git`。
-- 当前 main：`1.3.0`（天气机 + AcidRain 环境缓存，2026-11-10）；此前 `1.2.0`（世界类型改造/兼容内置，2026-11-09）与 `1.1.3.6`（de7d3fc，CI #11 success）。
+- 当前 main：`1.3.1`（地形 offset 重新接线，2026-11-11）；此前 `1.3.0`（天气机 + AcidRain 环境缓存，2026-11-10）、`1.2.0`（世界类型改造/兼容内置，2026-11-09）与 `1.1.3.6`（de7d3fc，CI #11 success）。
 - 1.2.0 是**破坏性**变更：删除 `data/minecraft` 下的 worldgen/dimension 覆盖、群系改 id、旧存档新区块回原版；发布时要在 Release 说明里写清楚。
 - 提交作者：`litai1hao-bot <350916319+litai1hao-bot@users.noreply.github.com>`。
 - 推送：HTTPS + Git Credential Manager（SSH 22 被代理拦截，不走 SSH）。
@@ -326,6 +333,8 @@ NTM（hbm）的结构是数据驱动的：`hbm:nbt` 结构 JSON + `hbm:config_sp
 酸水后续（1.1.0 遗留）：① runClient 目视确认酸绿贴图/水下雾/遮罩/桶贴图；② 结构水（海底神殿/海底废墟/要塞）是否也转酸水；③ 桶的装/倒交互实测。
 
 1.2.0 后续：① runClient 目视确认「世界类型」列表里出现「废土世界」并可选（tag 机制已按源码核对，UI 未目视）；② 第三方兼容包密度调稀（`tnas_spafner` / `lostcity_post` 等出现过多）；③ 可选补 `hbm:has_structure/submarine`、清理仓库多余 tag `main`。
+
+1.3.1 后续：开新世界验证 y≈95 平顶消失（`height_probe.js`：max ≤ ~90、≥95 列数为 0）、酸水/河道/低地淹没回归。
 
 ## 12. 新会话检查清单
 

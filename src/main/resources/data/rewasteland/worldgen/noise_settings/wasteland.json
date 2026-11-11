@@ -25,7 +25,7 @@
       "y_scale": 0.5
     },
     "continents": "minecraft:overworld/continents",
-    "depth": "minecraft:overworld/depth",
+    "depth": "rewasteland:overworld/depth",
     "erosion": "minecraft:overworld/erosion",
     "final_density": {
       "type": "minecraft:min",
@@ -232,7 +232,7 @@
                           "type": "minecraft:quarter_negative",
                           "argument": {
                             "type": "minecraft:mul",
-                            "argument1": "minecraft:overworld/depth",
+                            "argument1": "rewasteland:overworld/depth",
                             "argument2": {
                               "type": "minecraft:cache_2d",
                               "argument": "rewasteland:overworld/factor"
